@@ -1,6 +1,6 @@
 GO=go
 
-APP_NAME=misinder
+APP_NAME=unimates
 BUILD_DIR=$(CURDIR)/build
 CONFIG_PATH=./config/config.yaml
 
@@ -19,13 +19,10 @@ build: clean
 run: build
 	$(BUILD_DIR)/$(APP_NAME) --config="$(CONFIG_PATH)"
 
-
 clean: clean-build
 
 clean-build:
 	rm -rf $(BUILD_DIR)/
-
-
 
 # --------------------------
 # Database startup in Docker

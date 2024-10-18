@@ -1,5 +1,5 @@
 telegram: 
-  token: "7973329679:AAESFO43YrxWgqJk7G67rboAmWsK6TtvZZM"
+  token: "your-token"
 
 postgres:
   db: "postgres"
