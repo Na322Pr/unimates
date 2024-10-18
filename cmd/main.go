@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/Na322Pr/unimates/internal/config"
 	"github.com/Na322Pr/unimates/internal/controller"
@@ -21,6 +22,20 @@ func main() {
 		panic(err)
 	}
 	bot.Debug = true
+
+	commands := []tgbotapi.BotCommand{
+		{Command: "start", Description: "Запуск бота"},
+		{Command: "rules", Description: "Правила использования"},
+		{Command: "profile", Description: "Заполнение профиля"},
+		{Command: "myprofile", Description: "Посмотреть свой профиль"},
+		{Command: "offer", Description: "Создать предложение"},
+	}
+
+	cmdCfg := tgbotapi.NewSetMyCommands(commands...)
+	_, err = bot.Request(cmdCfg)
+	if err != nil {
+		log.Fatalf("Failed to set commands: %v", err)
+	}
 
 	pg, err := postgres.Connection(psqlDSN(cfg))
 	if err != nil {

@@ -167,7 +167,7 @@ func (uc *ProfileUsecase) AddOfferText(ctx context.Context, userID int64, text s
 func (uc *ProfileUsecase) AddOfferInterest(ctx context.Context, userID int64, interest string) error {
 	op := "ProfileUsecase.GetOfferStatus"
 
-	if err := uc.repo.UpdateOfferInterest(ctx, userID, interest); err != nil {
+	if err := uc.repo.UpdateOfferInterest(ctx, userID, strings.ToLower(interest)); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 

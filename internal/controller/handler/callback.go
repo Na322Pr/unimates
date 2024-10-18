@@ -28,14 +28,27 @@ func (h *CallbackHandler) Handle(ctx context.Context, update tgbotapi.Update) {
 
 	switch data {
 	case "no":
-		return
+		h.SendOfferAnswerNo(ctx, update)
 	default:
-		h.SendOfferAnswer(ctx, update)
+		h.SendOfferAnswerYes(ctx, update)
 	}
 }
 
-func (h *CallbackHandler) SendOfferAnswer(ctx context.Context, update tgbotapi.Update) {
-	op := "CallbackHandler.SendOfferAnswer"
+func (h *CallbackHandler) SendOfferAnswerNo(ctx context.Context, update tgbotapi.Update) {
+	op := "CallbackHandler.SendOfferAnswerNo"
+
+	msg := tgbotapi.NewMessage(
+		int64(update.CallbackQuery.From.ID),
+		"Спасибо за обратную связь",
+	)
+
+	if _, err := h.bot.Send(msg); err != nil {
+		fmt.Printf("%s: %v", op, err)
+	}
+}
+
+func (h *CallbackHandler) SendOfferAnswerYes(ctx context.Context, update tgbotapi.Update) {
+	op := "CallbackHandler.SendOfferAnswerYes"
 
 	userID, err := strconv.ParseInt(update.CallbackQuery.Data, 10, 64)
 	if err != nil {
@@ -70,7 +83,7 @@ func (h *CallbackHandler) SendOfferAnswer(ctx context.Context, update tgbotapi.U
 
 	msg = tgbotapi.NewMessage(
 		int64(offerRespID),
-		fmt.Sprintf("Вот чел который это предложил... @%s", username),
+		fmt.Sprintf("Вот чел, который это предложил: @%s", username),
 	)
 
 	if _, err := h.bot.Send(msg); err != nil {

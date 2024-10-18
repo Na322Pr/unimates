@@ -30,9 +30,9 @@ func (h *CommandHandler) Handle(ctx context.Context, update tgbotapi.Update) {
 		h.Start(ctx, update)
 	case "rules":
 		h.Rules(ctx, update)
-	case "anketa":
+	case "profile":
 		h.Profile(ctx, update)
-	case "myanketa":
+	case "myprofile":
 		h.MyProfile(ctx, update)
 	case "offer":
 		h.Offer(ctx, update)
