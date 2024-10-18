@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Na322Pr/misinder/internal/dto"
-	"github.com/Na322Pr/misinder/internal/keyboard/reply"
-	"github.com/Na322Pr/misinder/internal/usecase"
+	"github.com/Na322Pr/unimates/internal/dto"
+	"github.com/Na322Pr/unimates/internal/keyboard/reply"
+	"github.com/Na322Pr/unimates/internal/usecase"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 

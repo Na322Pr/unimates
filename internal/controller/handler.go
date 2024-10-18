@@ -4,26 +4,29 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Na322Pr/unimates/internal/controller/handler"
+	"github.com/Na322Pr/unimates/internal/dto"
+	"github.com/Na322Pr/unimates/internal/usecase"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-
-	"github.com/Na322Pr/misinder/internal/controller/handler"
-	"github.com/Na322Pr/misinder/internal/dto"
-	"github.com/Na322Pr/misinder/internal/usecase"
 )
 
 type Controller struct {
-	bot            *tgbotapi.BotAPI
-	uc             *usecase.ProfileUsecase
-	commandHandler *handler.CommandHandler
-	profileHandler *handler.ProfileHandler
+	bot             *tgbotapi.BotAPI
+	uc              *usecase.ProfileUsecase
+	commandHandler  *handler.CommandHandler
+	callbackHandler *handler.CallbackHandler
+	profileHandler  *handler.ProfileHandler
+	offerHandler    *handler.OfferHandler
 }
 
 func NewController(bot *tgbotapi.BotAPI, uc *usecase.ProfileUsecase) *Controller {
 	controller := &Controller{
-		bot:            bot,
-		uc:             uc,
-		commandHandler: handler.NewCommandHandler(bot, uc),
-		profileHandler: handler.NewProfileHandler(bot, uc),
+		bot:             bot,
+		uc:              uc,
+		commandHandler:  handler.NewCommandHandler(bot, uc),
+		callbackHandler: handler.NewCallbackHandler(bot, uc),
+		profileHandler:  handler.NewProfileHandler(bot, uc),
+		offerHandler:    handler.NewOfferHandler(bot, uc),
 	}
 
 	return controller
@@ -38,6 +41,11 @@ func (c *Controller) HandleUpdates(ctx context.Context) {
 	updates := c.bot.GetUpdatesChan(u)
 	for update := range updates {
 
+		if update.CallbackQuery != nil {
+			c.callbackHandler.Handle(ctx, update)
+			continue
+		}
+
 		if update.Message.IsCommand() {
 			c.commandHandler.Handle(ctx, update)
 			continue
@@ -48,9 +56,11 @@ func (c *Controller) HandleUpdates(ctx context.Context) {
 			fmt.Printf("%s: %v", op, err)
 		}
 
-		if status == dto.UserStatusProfile {
+		switch status {
+		case dto.UserStatusProfile:
 			c.profileHandler.Handle(ctx, update)
-			continue
+		case dto.UserStatusOffer:
+			c.offerHandler.Handle(ctx, update)
 		}
 	}
 }

@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Na322Pr/misinder/internal/config"
-	"github.com/Na322Pr/misinder/internal/controller"
-	"github.com/Na322Pr/misinder/internal/repository"
-	"github.com/Na322Pr/misinder/internal/usecase"
-	"github.com/Na322Pr/misinder/pkg/postgres"
+	"github.com/Na322Pr/unimates/internal/config"
+	"github.com/Na322Pr/unimates/internal/controller"
+	"github.com/Na322Pr/unimates/internal/repository"
+	"github.com/Na322Pr/unimates/internal/usecase"
+	"github.com/Na322Pr/unimates/pkg/postgres"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -29,7 +29,7 @@ func main() {
 	defer pg.Close()
 
 	repository := repository.NewUserRepository(pg)
-	usecase := usecase.NewUserUsecase(repository)
+	usecase := usecase.NewUserUsecase(bot, repository)
 	cntr := controller.NewController(bot, usecase)
 
 	cntr.HandleUpdates(ctx)

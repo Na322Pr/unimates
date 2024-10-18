@@ -1,4 +1,4 @@
-module github.com/Na322Pr/misinder
+module github.com/Na322Pr/unimates
 
 go 1.22.5
 
