@@ -14,10 +14,10 @@ import (
 
 type CommandHandler struct {
 	bot *tgbotapi.BotAPI
-	uc  *usecase.ProfileUsecase
+	uc  *usecase.Usecase
 }
 
-func NewCommandHandler(bot *tgbotapi.BotAPI, uc *usecase.ProfileUsecase) *CommandHandler {
+func NewCommandHandler(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *CommandHandler {
 	return &CommandHandler{
 		bot: bot,
 		uc:  uc,
@@ -31,19 +31,19 @@ func (h *CommandHandler) Handle(ctx context.Context, update tgbotapi.Update) {
 	case "rules":
 		h.Rules(ctx, update)
 	case "profile":
-		h.Profile(ctx, update)
+		h.EditInterests(ctx, update)
 	case "myprofile":
-		h.MyProfile(ctx, update)
+		h.MyInterests(ctx, update)
 	case "offer":
-		h.Offer(ctx, update)
+		// h.Offer(ctx, update)
 	}
 }
 
 func (h *CommandHandler) Start(ctx context.Context, update tgbotapi.Update) {
 	op := "CommandHandler.Start"
 
-	err := h.uc.CreateUser(
-		context.Background(),
+	err := h.uc.User.CreateUser(
+		ctx,
 		update.Message.From.ID,
 		update.Message.From.UserName,
 	)
@@ -53,7 +53,7 @@ func (h *CommandHandler) Start(ctx context.Context, update tgbotapi.Update) {
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID,
 		"Это бот для поиска людей с похожими интересами, заполните профиль")
-	msg.ReplyMarkup = reply.StartFillProfileKeyboard
+	// msg.ReplyMarkup = reply.StartFillProfileKeyboard
 
 	if _, err := h.bot.Send(msg); err != nil {
 		fmt.Printf("%s: %v", op, err)
@@ -69,35 +69,49 @@ func (h *CommandHandler) Rules(ctx context.Context, update tgbotapi.Update) {
 	}
 }
 
-func (h *CommandHandler) Profile(ctx context.Context, update tgbotapi.Update) {
-	op := "CommandHandler.Profile"
+func (h *CommandHandler) EditInterests(ctx context.Context, update tgbotapi.Update) {
+	op := "CommandHandler.EditInterests"
 
-	err := h.uc.RecreateUser(ctx, update.Message.From.ID)
+	userID := update.Message.From.ID
+
+	if err := h.uc.User.SetStatus(ctx, userID, dto.UserStatusInterest); err != nil {
+		fmt.Printf("%s: %v", op, err)
+	}
+
+	interests, err := h.uc.Interest.GetUserInterests(ctx, userID)
 	if err != nil {
 		fmt.Printf("%s: %v", op, err)
 	}
 
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID,
-		"Заполните профиль")
-	msg.ReplyMarkup = reply.StartFillProfileKeyboard
+	var msgText string
+	if len(interests) == 0 {
+		msgText = fmt.Sprintf("У вас пока нет добавленных интересов")
+	} else {
+		msgText = fmt.Sprintf("Список ваших интересов:\n%s", strings.Join(interests, "\n"))
+	}
+
+	msg := tgbotapi.NewMessage(userID, msgText)
+	msg.ReplyMarkup = reply.EditInterestKeyboard
 
 	if _, err := h.bot.Send(msg); err != nil {
 		fmt.Printf("%s: %v", op, err)
 	}
 }
 
-func (h *CommandHandler) MyProfile(ctx context.Context, update tgbotapi.Update) {
-	op := "CommandHandler.MyProfile"
+func (h *CommandHandler) MyInterests(ctx context.Context, update tgbotapi.Update) {
+	op := "CommandHandler.MyInterests"
 
-	interests, err := h.uc.GetUserInterests(
-		ctx,
-		update.Message.From.ID,
-	)
+	interests, err := h.uc.Interest.GetUserInterests(ctx, update.Message.From.ID)
 	if err != nil {
 		fmt.Printf("%s: %v", op, err)
 	}
 
-	msgText := fmt.Sprintf("Список ваших интересов:\n%s", strings.Join(interests, ", "))
+	var msgText string
+	if len(interests) == 0 {
+		msgText = fmt.Sprintf("У вас пока нет добавленных интересов")
+	} else {
+		msgText = fmt.Sprintf("Список ваших интересов:\n%s", strings.Join(interests, "\n"))
+	}
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, msgText)
 
 	if _, err := h.bot.Send(msg); err != nil {
@@ -105,30 +119,30 @@ func (h *CommandHandler) MyProfile(ctx context.Context, update tgbotapi.Update) 
 	}
 }
 
-func (h *CommandHandler) Offer(ctx context.Context, update tgbotapi.Update) {
-	op := "CommandHandler.Offer"
+// func (h *CommandHandler) Offer(ctx context.Context, update tgbotapi.Update) {
+// 	op := "CommandHandler.Offer"
 
-	err := h.uc.SetStatus(
-		ctx,
-		update.Message.From.ID,
-		dto.UserStatusOffer,
-	)
-	if err != nil {
-		fmt.Printf("%s: %v", op, err)
-	}
+// 	err := h.uc.SetStatus(
+// 		ctx,
+// 		update.Message.From.ID,
+// 		dto.UserStatusOffer,
+// 	)
+// 	if err != nil {
+// 		fmt.Printf("%s: %v", op, err)
+// 	}
 
-	err = h.uc.CreateOffer(
-		ctx,
-		update.Message.From.ID,
-	)
-	if err != nil {
-		fmt.Printf("%s: %v", op, err)
-	}
+// 	err = h.uc.CreateOffer(
+// 		ctx,
+// 		update.Message.From.ID,
+// 	)
+// 	if err != nil {
+// 		fmt.Printf("%s: %v", op, err)
+// 	}
 
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID,
-		"Текст вашего предложения")
+// 	msg := tgbotapi.NewMessage(update.Message.Chat.ID,
+// 		"Текст вашего предложения")
 
-	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
-	}
-}
+// 	if _, err := h.bot.Send(msg); err != nil {
+// 		fmt.Printf("%s: %v", op, err)
+// 	}
+// }

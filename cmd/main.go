@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/Na322Pr/unimates/internal/config"
 	"github.com/Na322Pr/unimates/internal/controller"
@@ -39,12 +41,17 @@ func main() {
 
 	pg, err := postgres.Connection(psqlDSN(cfg))
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to connect to db: %v", err)
 	}
 	defer pg.Close()
 
-	repository := repository.NewUserRepository(pg)
-	usecase := usecase.NewUserUsecase(bot, repository)
+	repository := repository.NewRepository(pg)
+
+	// if err := preloadInterests(ctx, repository.Interest); err != nil {
+	// 	log.Fatalf("Failed to load interests: %v", err)
+	// }
+
+	usecase := usecase.NewUsecase(bot, repository)
 	cntr := controller.NewController(bot, usecase)
 
 	cntr.HandleUpdates(ctx)
@@ -58,4 +65,37 @@ func psqlDSN(cfg *config.Config) string {
 		cfg.PG.Port,
 		cfg.PG.DB,
 	)
+}
+
+func preloadInterests(ctx context.Context, repo repository.Interest) error {
+	op := "PreloadInterests"
+
+	seen := make(map[string]struct{})
+	var interests []string
+
+	file, err := os.Open("./config/interests.txt")
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		if _, ok := seen[scanner.Text()]; ok {
+			continue
+		}
+		seen[scanner.Text()] = struct{}{}
+		interests = append(interests, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if err := repo.PreloadInterests(ctx, interests); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }

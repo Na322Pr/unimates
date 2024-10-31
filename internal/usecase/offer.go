@@ -6,8 +6,6 @@ package usecase
 // 	"github.com/Na322Pr/misinder/internal/repository"
 // )
 
-// type Offer
-
 // type OfferUsecase struct {
 // 	repo *repository.UserRepository
 // 	offers map[int64]
@@ -19,5 +17,9 @@ package usecase
 
 // func (uc *OfferUsecase) CreateOffer(ctx context.Context, userID int64) {
 // 	op := "OfferUsecase.CreateOffer"
+
+// }
+
+// func (uc *OfferUsecase) DeleteOffer(ctx context.Context, userID int64, orderID int64) {
 
 // }

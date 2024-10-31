@@ -11,22 +11,22 @@ import (
 )
 
 type Controller struct {
-	bot             *tgbotapi.BotAPI
-	uc              *usecase.ProfileUsecase
-	commandHandler  *handler.CommandHandler
-	callbackHandler *handler.CallbackHandler
-	profileHandler  *handler.ProfileHandler
-	offerHandler    *handler.OfferHandler
+	bot            *tgbotapi.BotAPI
+	uc             *usecase.Usecase
+	commandHandler *handler.CommandHandler
+	// callbackHandler *handler.CallbackHandler
+	interestHandler *handler.InterestHandler
+	// offerHandler    *handler.OfferHandler
 }
 
-func NewController(bot *tgbotapi.BotAPI, uc *usecase.ProfileUsecase) *Controller {
+func NewController(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *Controller {
 	controller := &Controller{
-		bot:             bot,
-		uc:              uc,
-		commandHandler:  handler.NewCommandHandler(bot, uc),
-		callbackHandler: handler.NewCallbackHandler(bot, uc),
-		profileHandler:  handler.NewProfileHandler(bot, uc),
-		offerHandler:    handler.NewOfferHandler(bot, uc),
+		bot:            bot,
+		uc:             uc,
+		commandHandler: handler.NewCommandHandler(bot, uc),
+		// callbackHandler: handler.NewCallbackHandler(bot, uc),
+		interestHandler: handler.NewInterestHandler(bot, uc),
+		// offerHandler: handler.NewOfferHandler(bot, uc),
 	}
 
 	return controller
@@ -41,26 +41,26 @@ func (c *Controller) HandleUpdates(ctx context.Context) {
 	updates := c.bot.GetUpdatesChan(u)
 	for update := range updates {
 
-		if update.CallbackQuery != nil {
-			c.callbackHandler.Handle(ctx, update)
-			continue
-		}
+		// if update.CallbackQuery != nil {
+		// 	c.callbackHandler.Handle(ctx, update)
+		// 	continue
+		// }
 
 		if update.Message.IsCommand() {
 			c.commandHandler.Handle(ctx, update)
 			continue
 		}
 
-		status, err := c.uc.GetUserStatus(ctx, update.Message.From.ID)
+		status, err := c.uc.User.GetUserStatus(ctx, update.Message.From.ID)
 		if err != nil {
 			fmt.Printf("%s: %v", op, err)
 		}
 
 		switch status {
-		case dto.UserStatusProfile:
-			c.profileHandler.Handle(ctx, update)
-		case dto.UserStatusOffer:
-			c.offerHandler.Handle(ctx, update)
+		case dto.UserStatusInterest, dto.UserStatusInterestAdd, dto.UserStatusInterestDelete:
+			c.interestHandler.Handle(ctx, update)
+			// case dto.UserStatusOffer:
+			// c.offerHandler.Handle(ctx, update)
 		}
 	}
 }
