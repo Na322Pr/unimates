@@ -13,6 +13,7 @@ const (
 	UserStatusInterestAdd    UserStatus = "interest_add"
 	UserStatusInterestDelete UserStatus = "interest_delete"
 	UserStatusOffer          UserStatus = "offer"
+	UserStatusOfferNew       UserStatus = "offer_new"
 )
 
 type UserRole string

@@ -59,7 +59,11 @@ func (uc *InterestUsecase) CreateUserInterest(ctx context.Context, userID int64,
 		}
 	}
 
-	msgText := "Похожие варианты:\n" + strings.Join(near, "\n")
+	msgText := "У нас нет похожих интересов...\nПопробуйте ввести что-то еще"
+	if len(near) != 0 {
+		msgText = "Похожие варианты:\n" + strings.Join(near, "\n")
+	}
+
 	msg := tgbotapi.NewMessage(userID, msgText)
 
 	if _, err := uc.bot.Send(msg); err != nil {

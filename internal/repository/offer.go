@@ -1,111 +1,164 @@
 package repository
 
-// func (r *UserRepository) CreateOffer(ctx context.Context, userID int64) error {
-// 	op := "UserRepository.CreateOffer"
-// 	query := `INSERT INTO offers(user_id) VALUES($1)`
+import (
+	"context"
+	"database/sql"
+	"fmt"
 
-// 	_, err := r.Conn.Exec(ctx, query, userID)
+	"github.com/Na322Pr/unimates/internal/dto"
+	"github.com/Na322Pr/unimates/pkg/postgres"
+)
 
-// 	if err != nil {
-// 		return fmt.Errorf("%s: %w", op, err)
-// 	}
+type OfferRepository struct {
+	*postgres.Postgres
+}
 
-// 	return nil
-// }
+func NewOfferRepository(pg *postgres.Postgres) *OfferRepository {
+	return &OfferRepository{pg}
+}
 
-// func (r *UserRepository) GetOffer(ctx context.Context, userID int64) (*dto.OfferDTO, error) {
-// 	op := "UserRepository.GetOffer"
-// 	query := `SELECT user_id, "text", interest FROM offers WHERE user_id = $1`
+func (r *OfferRepository) CreateOffer(ctx context.Context, userID int64) (int64, error) {
+	op := "OfferRepository.CreateOffer"
+	query := `INSERT INTO offers(user_id) VALUES($1) RETURNING id`
 
-// 	var offerDTO dto.OfferDTO
-// 	err := r.Conn.QueryRow(ctx, query, userID).Scan(
-// 		&offerDTO.UserID,
-// 		&offerDTO.Text,
-// 		&offerDTO.Interest,
-// 	)
+	var offerID int64
+	err := r.Conn.QueryRow(ctx, query, userID).Scan(&offerID)
 
-// 	if err != nil {
-// 		if err == sql.ErrNoRows {
-// 			return nil, fmt.Errorf("%s: %w", op, ErrUserNotFound)
-// 		}
-// 		return nil, fmt.Errorf("%s: %w", op, err)
-// 	}
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
 
-// 	return &offerDTO, nil
+	return offerID, nil
+}
 
-// }
+func (r *OfferRepository) GetOfferByID(ctx context.Context, offerID int64) (*dto.OfferDTO, error) {
+	op := "OfferRepository.GetUserOffers"
+	query := `SELECT id, user_id, text, interest_id, inactive_at FROM offers WHERE id = $1`
 
-// func (r *UserRepository) UpdateOfferText(ctx context.Context, userID int64, text string) error {
-// 	op := "UserRepository.UpdateOfferText"
-// 	query := `UPDATE offers SET "text" = $2 WHERE user_id = $1`
+	var offerDTO dto.OfferDTO
+	err := r.Conn.QueryRow(ctx, query, offerID).Scan(
+		&offerDTO.ID,
+		&offerDTO.UserID,
+		&offerDTO.Text,
+		&offerDTO.InterestID,
+		&offerDTO.InactiveAt,
+	)
 
-// 	_, err := r.Conn.Exec(ctx, query, userID, text)
-// 	if err != nil {
-// 		return fmt.Errorf("%s: %w", op, err)
-// 	}
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("%s: %w", op, ErrUserNotFound)
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 
-// 	return nil
-// }
+	return &offerDTO, nil
+}
 
-// func (r *UserRepository) UpdateOfferInterest(ctx context.Context, userID int64, interest string) error {
-// 	op := "UserRepository.UpdateOfferInterest"
-// 	query := `UPDATE offers SET interest = $2 WHERE user_id = $1`
+func (r *OfferRepository) GetUserOffers(ctx context.Context, userID int64) ([]dto.OfferDTO, error) {
+	op := "OfferRepository.GetUserOffers"
+	query := `SELECT id, user_id, text, interest_id, inactive_at FROM offers WHERE user_id = $1`
 
-// 	_, err := r.Conn.Exec(ctx, query, userID, interest)
-// 	if err != nil {
-// 		return fmt.Errorf("%s: %w", op, err)
-// 	}
+	rows, err := r.Conn.Query(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
 
-// 	return nil
-// }
+	var offersDTOs []dto.OfferDTO
+	for rows.Next() {
+		var offerDTO dto.OfferDTO
+		if err := rows.Scan(
+			&offerDTO.ID,
+			&offerDTO.UserID,
+			&offerDTO.Text,
+			&offerDTO.InterestID,
+			&offerDTO.InactiveAt,
+		); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
 
-// func (r *UserRepository) DeletOffer(ctx context.Context, userID int64) error {
-// 	op := "UserRepository.DeleteOffer"
-// 	query := `DELETE FROM offers WHERE user_id = $1`
+		offersDTOs = append(offersDTOs, offerDTO)
+	}
 
-// 	_, err := r.Conn.Exec(ctx, query, userID)
-// 	if err != nil {
-// 		return fmt.Errorf("%s: %w", op, err)
-// 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 
-// 	return nil
-// }
+	return offersDTOs, nil
 
-// func (r *UserRepository) GetMatch(ctx context.Context, mainInterest string, interests []string) ([]int64, error) {
-// 	op := "UserRepository.GetMatch"
-// 	query := `
-// 		SELECT id
-// 		FROM (
-// 			SELECT id, UNNEST(interests::varchar[]) AS interest FROM (
-// 				SELECT * FROM users WHERE $1 = ANY(interests)
-// 			) AS main_interest
-// 		) AS cur_interests
-// 		JOIN
-// 		(SELECT UNNEST($2::varchar[]) AS interest) AS given_interests
-// 		ON cur_interests.interest = given_interests.interest
-// 		GROUP BY id HAVING COUNT(*) >= 3;
-// 	`
+}
 
-// 	rows, err := r.Conn.Query(ctx, query, mainInterest, interests)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("%s: %w", op, err)
-// 	}
-// 	defer rows.Close()
+func (r *OfferRepository) UpdateOfferText(ctx context.Context, offerID int64, text string) error {
+	op := "OfferRepository.UpdateOfferText"
+	query := `UPDATE offers SET "text" = $2 WHERE id = $1`
 
-// userIDs := make([]int64, 0, 10)
+	_, err := r.Conn.Exec(ctx, query, offerID, text)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 
-// 	for rows.Next() {
-// 		var userID int64
-// 		if err := rows.Scan(&userID); err != nil {
-// 			return nil, fmt.Errorf("%s: %w", op, err)
-// 		}
+	return nil
+}
 
-// userIDs = append(userIDs, userID)
-// 	}
+func (r *OfferRepository) UpdateOfferInterest(ctx context.Context, offerID int64, interestID int) error {
+	op := "OfferRepository.UpdateOfferMainInterest"
+	query := `UPDATE offers SET interest_id = $2 WHERE id = $1`
 
-// 	if err := rows.Err(); err != nil {
-// 		return nil, fmt.Errorf("%s: %w", op, err)
-// 	}
+	_, err := r.Conn.Exec(ctx, query, offerID, interestID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 
-// 	return userIDs, nil
-// }
+	return nil
+}
+
+func (r *OfferRepository) DeletOffer(ctx context.Context, offerID int64) error {
+	op := "OfferRepository.DeleteOffer"
+	query := `DELETE FROM offers WHERE id = $1`
+
+	_, err := r.Conn.Exec(ctx, query, offerID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+func (r *OfferRepository) GetMatch(ctx context.Context, mainInterest string, interests []string) ([]int64, error) {
+	op := "OfferRepository.GetMatch"
+	query := `
+		SELECT id
+		FROM (
+			SELECT id, UNNEST(interests::varchar[]) AS interest FROM (
+				SELECT * FROM users WHERE $1 = ANY(interests)
+			) AS main_interest
+		) AS cur_interests
+		JOIN
+		(SELECT UNNEST($2::varchar[]) AS interest) AS given_interests
+		ON cur_interests.interest = given_interests.interest
+		GROUP BY id HAVING COUNT(*) >= 3;
+	`
+
+	rows, err := r.Conn.Query(ctx, query, mainInterest, interests)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	userIDs := make([]int64, 0, 10)
+
+	for rows.Next() {
+		var userID int64
+		if err := rows.Scan(&userID); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		userIDs = append(userIDs, userID)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return userIDs, nil
+}

@@ -34,6 +34,8 @@ func (h *CommandHandler) Handle(ctx context.Context, update tgbotapi.Update) {
 		h.EditInterests(ctx, update)
 	case "myprofile":
 		h.MyInterests(ctx, update)
+	case "myoffers":
+		h.MyOffers(ctx, update)
 	case "offer":
 		// h.Offer(ctx, update)
 	}
@@ -85,13 +87,51 @@ func (h *CommandHandler) EditInterests(ctx context.Context, update tgbotapi.Upda
 
 	var msgText string
 	if len(interests) == 0 {
-		msgText = fmt.Sprintf("У вас пока нет добавленных интересов")
+		msgText = "У вас пока нет добавленных интересов"
 	} else {
 		msgText = fmt.Sprintf("Список ваших интересов:\n%s", strings.Join(interests, "\n"))
 	}
 
 	msg := tgbotapi.NewMessage(userID, msgText)
 	msg.ReplyMarkup = reply.EditInterestKeyboard
+
+	if _, err := h.bot.Send(msg); err != nil {
+		fmt.Printf("%s: %v", op, err)
+	}
+}
+
+func (h *CommandHandler) MyOffers(ctx context.Context, update tgbotapi.Update) {
+	op := "OfferHandler.MyOffers"
+	userID := update.Message.From.ID
+
+	if err := h.uc.User.SetStatus(ctx, userID, dto.UserStatusOffer); err != nil {
+		fmt.Printf("%s: %v", op, err)
+	}
+
+	offers, err := h.uc.Offer.GetUserOffers(ctx, userID)
+	if err != nil {
+		fmt.Printf("%s: %v", op, err)
+	}
+
+	var keyboardRows [][]tgbotapi.KeyboardButton
+
+	row := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Новое предложение"))
+	keyboardRows = append(keyboardRows, row)
+
+	for _, offer := range offers {
+		row = tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(offer.Text.String))
+		keyboardRows = append(keyboardRows, row)
+	}
+
+	row = tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Сохранить"))
+	keyboardRows = append(keyboardRows, row)
+
+	keyboard := tgbotapi.NewReplyKeyboard(keyboardRows...)
+
+	msgText := "Меню предложений\n"
+
+	msg := tgbotapi.NewMessage(userID, msgText)
+	msg.ReplyMarkup = keyboard
 
 	if _, err := h.bot.Send(msg); err != nil {
 		fmt.Printf("%s: %v", op, err)
@@ -108,7 +148,7 @@ func (h *CommandHandler) MyInterests(ctx context.Context, update tgbotapi.Update
 
 	var msgText string
 	if len(interests) == 0 {
-		msgText = fmt.Sprintf("У вас пока нет добавленных интересов")
+		msgText = "У вас пока нет добавленных интересов"
 	} else {
 		msgText = fmt.Sprintf("Список ваших интересов:\n%s", strings.Join(interests, "\n"))
 	}

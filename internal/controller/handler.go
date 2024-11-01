@@ -16,7 +16,7 @@ type Controller struct {
 	commandHandler *handler.CommandHandler
 	// callbackHandler *handler.CallbackHandler
 	interestHandler *handler.InterestHandler
-	// offerHandler    *handler.OfferHandler
+	offerHandler    *handler.OfferHandler
 }
 
 func NewController(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *Controller {
@@ -26,7 +26,7 @@ func NewController(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *Controller {
 		commandHandler: handler.NewCommandHandler(bot, uc),
 		// callbackHandler: handler.NewCallbackHandler(bot, uc),
 		interestHandler: handler.NewInterestHandler(bot, uc),
-		// offerHandler: handler.NewOfferHandler(bot, uc),
+		offerHandler:    handler.NewOfferHandler(bot, uc),
 	}
 
 	return controller
@@ -59,8 +59,8 @@ func (c *Controller) HandleUpdates(ctx context.Context) {
 		switch status {
 		case dto.UserStatusInterest, dto.UserStatusInterestAdd, dto.UserStatusInterestDelete:
 			c.interestHandler.Handle(ctx, update)
-			// case dto.UserStatusOffer:
-			// c.offerHandler.Handle(ctx, update)
+		case dto.UserStatusOffer, dto.UserStatusOfferNew:
+			c.offerHandler.Handle(ctx, update)
 		}
 	}
 }

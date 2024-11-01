@@ -29,14 +29,26 @@ type Interest interface {
 
 var _ Interest = (*InterestRepository)(nil)
 
+type Offer interface {
+	CreateOffer(ctx context.Context, userID int64) (int64, error)
+	GetOfferByID(ctx context.Context, offer int64) (*dto.OfferDTO, error)
+	GetUserOffers(ctx context.Context, userID int64) ([]dto.OfferDTO, error)
+	UpdateOfferText(ctx context.Context, offerID int64, text string) error
+	UpdateOfferInterest(ctx context.Context, offerID int64, interestID int) error
+	DeletOffer(ctx context.Context, offerID int64) error
+	GetMatch(ctx context.Context, mainInterest string, interests []string) ([]int64, error)
+}
+
 type Repository struct {
 	User
 	Interest
+	Offer
 }
 
 func NewRepository(pg *postgres.Postgres) *Repository {
 	return &Repository{
 		User:     NewUserRepository(pg),
 		Interest: NewInterestRepository(pg),
+		Offer:    NewOfferRepository(pg),
 	}
 }

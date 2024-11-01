@@ -30,7 +30,7 @@ func main() {
 		{Command: "rules", Description: "Правила использования"},
 		{Command: "profile", Description: "Заполнение профиля"},
 		{Command: "myprofile", Description: "Посмотреть свой профиль"},
-		{Command: "offer", Description: "Создать предложение"},
+		{Command: "myoffers", Description: "Меню предложений"},
 	}
 
 	cmdCfg := tgbotapi.NewSetMyCommands(commands...)
@@ -47,9 +47,9 @@ func main() {
 
 	repository := repository.NewRepository(pg)
 
-	// if err := preloadInterests(ctx, repository.Interest); err != nil {
-	// 	log.Fatalf("Failed to load interests: %v", err)
-	// }
+	if err := preloadInterests(ctx, repository.Interest); err != nil {
+		fmt.Printf("Failed to load interests: %v", err)
+	}
 
 	usecase := usecase.NewUsecase(bot, repository)
 	cntr := controller.NewController(bot, usecase)

@@ -15,9 +15,10 @@ create table "interests" (
 );
 
 create table "offers" (
-  "id" bigint primary key,
+  "id" bigserial primary key,
   "user_id" bigint not null references users(id) on delete cascade,
-  "main_interest_id" int not null references interests(id) on delete cascade,
+  "text" text,
+  "interest_id" int references interests(id) on delete cascade,
   "notify" boolean default false,
   "inactive_at" timestamptz,
   "created_at" timestamptz default current_timestamp,
