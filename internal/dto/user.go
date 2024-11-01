@@ -14,6 +14,7 @@ const (
 	UserStatusInterestDelete UserStatus = "interest_delete"
 	UserStatusOffer          UserStatus = "offer"
 	UserStatusOfferNew       UserStatus = "offer_new"
+	UserStatusOfferEdit      UserStatus = "offer_edit"
 )
 
 type UserRole string

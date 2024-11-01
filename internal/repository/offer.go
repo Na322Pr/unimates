@@ -54,6 +54,29 @@ func (r *OfferRepository) GetOfferByID(ctx context.Context, offerID int64) (*dto
 	return &offerDTO, nil
 }
 
+func (r *OfferRepository) GetOfferByText(ctx context.Context, userID int64, offerText string) (*dto.OfferDTO, error) {
+	op := "OfferRepository.GetOfferByText"
+	query := `SELECT id, user_id, text, interest_id, inactive_at FROM offers WHERE user_id = $1 AND text = $2 limit 1`
+
+	var offerDTO dto.OfferDTO
+	err := r.Conn.QueryRow(ctx, query, userID, offerText).Scan(
+		&offerDTO.ID,
+		&offerDTO.UserID,
+		&offerDTO.Text,
+		&offerDTO.InterestID,
+		&offerDTO.InactiveAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("%s: %w", op, ErrOfferNotFound)
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &offerDTO, nil
+}
+
 func (r *OfferRepository) GetUserOffers(ctx context.Context, userID int64) ([]dto.OfferDTO, error) {
 	op := "OfferRepository.GetUserOffers"
 	query := `SELECT id, user_id, text, interest_id, inactive_at FROM offers WHERE user_id = $1`
@@ -85,7 +108,36 @@ func (r *OfferRepository) GetUserOffers(ctx context.Context, userID int64) ([]dt
 	}
 
 	return offersDTOs, nil
+}
 
+func (r *OfferRepository) GetUserAcceptedOffer(ctx context.Context, offerID int64) ([]string, error) {
+	op := "OfferRepository.GetUserAcceptedOffer"
+	query := `SELECT username FROM offers
+		JOIN offer_acceptances ON offers.id = offer_acceptances.offer_id
+		JOIN users ON offer_acceptances.user_id = users.id
+		WHERE offers.id = $1
+	`
+
+	rows, err := r.Conn.Query(ctx, query, offerID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	usernames := make([]string, 0)
+	for rows.Next() {
+		var username string
+		if err := rows.Scan(&username); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		usernames = append(usernames, username)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return usernames, nil
 }
 
 func (r *OfferRepository) UpdateOfferText(ctx context.Context, offerID int64, text string) error {

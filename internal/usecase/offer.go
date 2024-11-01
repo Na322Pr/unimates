@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/Na322Pr/unimates/internal/dto"
 	"github.com/Na322Pr/unimates/internal/repository"
@@ -50,6 +51,33 @@ func (uc *OfferUsecase) SelectActiveOffer(ctx context.Context, userID, offerID i
 
 func (uc *OfferUsecase) DeleteOffer(ctx context.Context, userID int64, orderID int64) {
 
+}
+
+func (uc *OfferUsecase) GetOfferAcceptances(ctx context.Context, userID int64, offerText string) error {
+	op := "OfferUsecase.GetOfferAcceptances"
+
+	offerDTO, err := uc.repo.GetOfferByText(ctx, userID, offerText)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	users, err := uc.repo.GetUserAcceptedOffer(ctx, offerDTO.ID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	msgText := "Пока что никто не откликнулся на это предложение"
+	if len(users) != 0 {
+		msgText = "Вот кто откликнулся:\n@" + strings.Join(users, "\n@")
+	}
+
+	msg := tgbotapi.NewMessage(userID, msgText)
+
+	if _, err := uc.bot.Send(msg); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }
 
 func (uc *OfferUsecase) GetOfferStatus(ctx context.Context, userID int64) (dto.OfferStatus, error) {

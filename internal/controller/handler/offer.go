@@ -63,6 +63,20 @@ func (h *OfferHandler) OfferHandler(ctx context.Context, update tgbotapi.Update)
 		h.AddOffer(ctx, update)
 	case "Сохранить":
 		h.CloseMenu(ctx, update)
+	default:
+		h.OfferSettings(ctx, update)
+	}
+}
+
+func (h *OfferHandler) OfferSettings(ctx context.Context, update tgbotapi.Update) {
+	op := "OfferHandler.OfferSettings"
+
+	if err := h.uc.Offer.GetOfferAcceptances(
+		ctx,
+		update.Message.From.ID,
+		update.Message.Text,
+	); err != nil {
+		fmt.Printf("%s: %v", op, err)
 	}
 }
 
