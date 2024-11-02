@@ -38,7 +38,7 @@ type Offer interface {
 	UpdateOfferText(ctx context.Context, offerID int64, text string) error
 	UpdateOfferInterest(ctx context.Context, offerID int64, interestID int) error
 	DeletOffer(ctx context.Context, offerID int64) error
-	GetMatch(ctx context.Context, mainInterest string, interests []string) ([]int64, error)
+	GetMatch(ctx context.Context, userID int64, interestID int) ([]int64, error)
 }
 
 type Repository struct {

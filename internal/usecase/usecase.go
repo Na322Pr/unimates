@@ -15,6 +15,6 @@ func NewUsecase(bot *tgbotapi.BotAPI, repo *repository.Repository) *Usecase {
 	return &Usecase{
 		User:     *NewUserUsecase(bot, repo.User),
 		Interest: *NewInterestUsecase(bot, repo.Interest),
-		Offer:    *NewOfferUsecase(bot, repo.Offer),
+		Offer:    *NewOfferUsecase(bot, *repo),
 	}
 }

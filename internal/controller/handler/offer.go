@@ -133,6 +133,7 @@ func (h *OfferHandler) AddInterest(ctx context.Context, update tgbotapi.Update) 
 	)
 	if err != nil {
 		fmt.Printf("%s: %v", op, err)
+		return
 	}
 
 	if err := h.uc.User.SetStatus(

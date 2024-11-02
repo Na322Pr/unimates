@@ -176,22 +176,21 @@ func (r *OfferRepository) DeletOffer(ctx context.Context, offerID int64) error {
 	return nil
 }
 
-func (r *OfferRepository) GetMatch(ctx context.Context, mainInterest string, interests []string) ([]int64, error) {
+func (r *OfferRepository) GetMatch(ctx context.Context, userID int64, interestID int) ([]int64, error) {
 	op := "OfferRepository.GetMatch"
 	query := `
-		SELECT id
-		FROM (
-			SELECT id, UNNEST(interests::varchar[]) AS interest FROM (
-				SELECT * FROM users WHERE $1 = ANY(interests)
-			) AS main_interest
-		) AS cur_interests
+		SELECT main_eq.user_id FROM 
+		(SELECT user_id FROM user_interests WHERE interest_id = $2) AS main_eq
 		JOIN
-		(SELECT UNNEST($2::varchar[]) AS interest) AS given_interests
-		ON cur_interests.interest = given_interests.interest
-		GROUP BY id HAVING COUNT(*) >= 3;
+		(SELECT sui.user_id FROM user_interests AS fui
+		JOIN user_interests AS sui on fui.interest_id = sui.interest_id
+		WHERE fui.user_id = $1 AND fui.user_id != sui.user_id 
+		GROUP BY sui.user_id
+		HAVING COUNT(*) >= 3) as dop_eq
+		ON main_eq.user_id = dop_eq.user_id
 	`
 
-	rows, err := r.Conn.Query(ctx, query, mainInterest, interests)
+	rows, err := r.Conn.Query(ctx, query, userID, interestID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}

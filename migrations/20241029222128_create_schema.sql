@@ -31,8 +31,6 @@ create table "offer_acceptances" (
   primary key (user_id, offer_id)
 );
 
-
-
 create table "user_interests" (
   "user_id" bigint not null references users(id) on delete cascade,
   "interest_id" int not null references interests(id) on delete cascade,

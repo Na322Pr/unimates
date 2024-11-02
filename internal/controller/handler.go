@@ -11,20 +11,20 @@ import (
 )
 
 type Controller struct {
-	bot            *tgbotapi.BotAPI
-	uc             *usecase.Usecase
-	commandHandler *handler.CommandHandler
-	// callbackHandler *handler.CallbackHandler
+	bot             *tgbotapi.BotAPI
+	uc              *usecase.Usecase
+	commandHandler  *handler.CommandHandler
+	callbackHandler *handler.CallbackHandler
 	interestHandler *handler.InterestHandler
 	offerHandler    *handler.OfferHandler
 }
 
 func NewController(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *Controller {
 	controller := &Controller{
-		bot:            bot,
-		uc:             uc,
-		commandHandler: handler.NewCommandHandler(bot, uc),
-		// callbackHandler: handler.NewCallbackHandler(bot, uc),
+		bot:             bot,
+		uc:              uc,
+		commandHandler:  handler.NewCommandHandler(bot, uc),
+		callbackHandler: handler.NewCallbackHandler(bot, uc),
 		interestHandler: handler.NewInterestHandler(bot, uc),
 		offerHandler:    handler.NewOfferHandler(bot, uc),
 	}
@@ -41,10 +41,10 @@ func (c *Controller) HandleUpdates(ctx context.Context) {
 	updates := c.bot.GetUpdatesChan(u)
 	for update := range updates {
 
-		// if update.CallbackQuery != nil {
-		// 	c.callbackHandler.Handle(ctx, update)
-		// 	continue
-		// }
+		if update.CallbackQuery != nil {
+			c.callbackHandler.Handle(ctx, update)
+			continue
+		}
 
 		if update.Message.IsCommand() {
 			c.commandHandler.Handle(ctx, update)

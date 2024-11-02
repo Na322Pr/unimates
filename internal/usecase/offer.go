@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -12,11 +13,11 @@ import (
 
 type OfferUsecase struct {
 	bot          *tgbotapi.BotAPI
-	repo         repository.Offer
+	repo         repository.Repository
 	activeOffers map[int64]int64
 }
 
-func NewOfferUsecase(bot *tgbotapi.BotAPI, repo repository.Offer) *OfferUsecase {
+func NewOfferUsecase(bot *tgbotapi.BotAPI, repo repository.Repository) *OfferUsecase {
 	return &OfferUsecase{bot: bot, repo: repo, activeOffers: make(map[int64]int64)}
 }
 
@@ -108,13 +109,87 @@ func (uc *OfferUsecase) AddOfferText(ctx context.Context, userID int64, text str
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	return ErrInvalidInterestName
+}
+
+func (uc *OfferUsecase) AddOfferInterest(ctx context.Context, userID int64, newInterest string) error {
+	op := "OfferUsecase.GetOfferStatus"
+
+	interests, err := uc.repo.GetInterests(ctx)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	newInterestID := -1
+
+	for _, interest := range interests {
+		if interest.Name == newInterest {
+			newInterestID = interest.ID
+			break
+		}
+	}
+
+	if newInterestID == -1 {
+		msgText := "У нас нет похожих интересов...\nПопробуйте ввести что-то еще"
+		msg := tgbotapi.NewMessage(userID, msgText)
+
+		if _, err := uc.bot.Send(msg); err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		return ErrInvalidInterestName
+	}
+
+	if err := uc.repo.UpdateOfferInterest(ctx, uc.activeOffers[userID], newInterestID); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	matchUserIDs, err := uc.repo.GetMatch(ctx, userID, newInterestID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	fmt.Println(matchUserIDs)
+
+	offerDTO, err := uc.repo.Offer.GetOfferByID(ctx, uc.activeOffers[userID])
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	for _, matchUserID := range matchUserIDs {
+		if matchUserID == userID {
+			continue
+		}
+		if err := uc.sendOffer(ctx, userID, matchUserID, offerDTO.ID, offerDTO.Text.String); err != nil {
+			fmt.Printf("%s: %v", op, err)
+		}
+	}
+
 	return nil
 }
 
-func (uc *OfferUsecase) AddOfferInterest(ctx context.Context, userID int64, interest string) error {
-	op := "OfferUsecase.GetOfferStatus"
+func (uc *OfferUsecase) sendOffer(ctx context.Context, senderID, userID, offerID int64, offerText string) error {
+	op := "OfferUsecase.sendOffer"
+	msg := tgbotapi.NewMessage(userID, fmt.Sprintf("Для вас новое предложение\n%s\nИнтересно?", offerText))
 
-	if err := uc.repo.UpdateOfferInterest(ctx, uc.activeOffers[userID], 1); err != nil {
+	data := make(map[string]int64)
+	data["sender_id"] = senderID
+	data["offer_id"] = offerID
+
+	jsonBytes, err := json.MarshalIndent(data, "", " ")
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	OfferReplyKeyboard := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Да", string(jsonBytes)),
+			tgbotapi.NewInlineKeyboardButtonData("Нет", "no"),
+		),
+	)
+
+	msg.ReplyMarkup = OfferReplyKeyboard
+	if _, err := uc.bot.Send(msg); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
