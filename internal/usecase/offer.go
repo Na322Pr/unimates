@@ -54,6 +54,16 @@ func (uc *OfferUsecase) DeleteOffer(ctx context.Context, userID int64, orderID i
 
 }
 
+func (uc *OfferUsecase) CreateOfferAcceptance(ctx context.Context, userID, offerID int64) error {
+	op := "OfferUsecase.CreateOfferAcceptance"
+
+	if err := uc.repo.CreateUserAcceptedOffer(ctx, userID, offerID); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
 func (uc *OfferUsecase) GetOfferAcceptances(ctx context.Context, userID int64, offerText string) error {
 	op := "OfferUsecase.GetOfferAcceptances"
 

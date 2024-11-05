@@ -28,8 +28,11 @@ clean-build:
 # Database startup in Docker
 # --------------------------
 
+# compose-up:
+# 	docker-compose up -d
+
 compose-up:
-	docker-compose up -d postgres
+	docker-compose up --build -d 
 
 compose-down:
 	docker-compose down

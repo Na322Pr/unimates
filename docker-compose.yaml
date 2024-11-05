@@ -3,14 +3,41 @@ version: '3.1'
 services:
   postgres:
     image: 'postgres:15-alpine'
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
     container_name: postgres_db
+    env_file:
+      - .env
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     ports:
-      # - "127.0.0.1:5432:5432"
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  go-unimates:
+    build: 
+      context: .
+    container_name: bot_service
+    env_file:
+      - .env
+    volumes:
+      - ./config:/app/config
+    ports:
+      - "8080:8080"
+    command: ["/backend/unimates", "--config=/app/config/config.yaml"]
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  migrate:
+    build:
+      context: .
+    container_name: migrate
+    command: goose -dir ./migrations postgres "${PG_URL}" up
+    depends_on:
+      postgres:
+        condition: service_healthy

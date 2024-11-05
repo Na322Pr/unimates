@@ -13,15 +13,22 @@ import (
 	"github.com/Na322Pr/unimates/internal/usecase"
 	"github.com/Na322Pr/unimates/pkg/postgres"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load("./.env"); err != nil {
+		log.Println("no .env file found")
+	}
+
 	cfg := config.MustLoad()
 	ctx := context.Background()
 
+	log.Printf("Loaded TG_BOT_TOKEN: %s", os.Getenv("TG_BOT_TOKEN"))
+
 	bot, err := tgbotapi.NewBotAPI(cfg.TG.Token)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to create bot: %v", err)
 	}
 	bot.Debug = true
 

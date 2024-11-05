@@ -68,6 +68,10 @@ func (h *CallbackHandler) SendOfferAnswerYes(ctx context.Context, update tgbotap
 		fmt.Printf("%s: %v", op, err)
 	}
 
+	if err := h.uc.Offer.CreateOfferAcceptance(ctx, offerRespID, int64(data["offer_id"].(float64))); err != nil {
+		fmt.Printf("%s: %v", op, err)
+	}
+
 	msg := tgbotapi.NewMessage(
 		int64(userID),
 		fmt.Sprintf("Ваше предложение интересно @%s", username),

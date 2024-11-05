@@ -14,15 +14,15 @@ type Config struct {
 }
 
 type TG struct {
-	Token string `yaml:"token"`
+	Token string `yaml:"token" env:"TG_BOT_TOKEN"`
 }
 
 type PG struct {
-	DB       string `yaml:"db"`
-	Host     string `yaml:"host"`
-	Port     int    `yaml:"port"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
+	DB       string `yaml:"db" env:"PG_DB"`
+	Host     string `yaml:"host" env:"PG_HOST"`
+	Port     int    `yaml:"port" env:"PG_PORT"`
+	User     string `yaml:"user" env:"PG_USER"`
+	Password string `yaml:"password" env:"PG_PASSWORD"`
 }
 
 func MustLoad() *Config {
@@ -42,7 +42,11 @@ func MustLoadPath(configPath string) *Config {
 
 	var cfg Config
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		log.Fatal("failed to read config: " + err.Error())
+		log.Print("failed to read config: " + err.Error())
+	}
+
+	if err := cleanenv.ReadEnv(&cfg); err != nil {
+		log.Fatal("failed to read environment variables" + err.Error())
 	}
 
 	return &cfg

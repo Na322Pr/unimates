@@ -110,6 +110,17 @@ func (r *OfferRepository) GetUserOffers(ctx context.Context, userID int64) ([]dt
 	return offersDTOs, nil
 }
 
+func (r *OfferRepository) CreateUserAcceptedOffer(ctx context.Context, userID, offerID int64) error {
+	op := "OfferRepository.CreateUserAcceptedOffer"
+	query := `INSERT INTO offer_acceptances(user_id, offer_id) VALUES($1, $2)`
+
+	if _, err := r.Conn.Exec(ctx, query, userID, offerID); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
 func (r *OfferRepository) GetUserAcceptedOffer(ctx context.Context, offerID int64) ([]string, error) {
 	op := "OfferRepository.GetUserAcceptedOffer"
 	query := `SELECT username FROM offers

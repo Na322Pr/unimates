@@ -34,6 +34,7 @@ type Offer interface {
 	GetOfferByID(ctx context.Context, offer int64) (*dto.OfferDTO, error)
 	GetOfferByText(ctx context.Context, userID int64, offerText string) (*dto.OfferDTO, error)
 	GetUserOffers(ctx context.Context, userID int64) ([]dto.OfferDTO, error)
+	CreateUserAcceptedOffer(ctx context.Context, userID, offerID int64) error
 	GetUserAcceptedOffer(ctx context.Context, offerID int64) ([]string, error)
 	UpdateOfferText(ctx context.Context, offerID int64, text string) error
 	UpdateOfferInterest(ctx context.Context, offerID int64, interestID int) error
