@@ -4,18 +4,29 @@ services:
   postgres:
     image: 'postgres:15-alpine'
     container_name: postgres_db
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
+      # - "5432:5432"
     restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    container_name: migrate
+    env_file:
+      - .env
+    volumes:
+      - ./migrations:/migrations
+    command: goose -dir /migrations postgres "${PG_URL}" up
+    depends_on:
+      - postgres
 
   go-unimates:
     build: 
@@ -27,17 +38,7 @@ services:
       - ./config:/app/config
     ports:
       - "8080:8080"
-    command: ["/backend/unimates", "--config=/app/config/config.yaml"]
+    command: ["./unimates", "--config=/app/config/config.yaml"]
     restart: always
     depends_on:
-      postgres:
-        condition: service_healthy
-
-  migrate:
-    build:
-      context: .
-    container_name: migrate
-    command: goose -dir ./migrations postgres "${PG_URL}" up
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres

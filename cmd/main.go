@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Na322Pr/unimates/internal/config"
 	"github.com/Na322Pr/unimates/internal/controller"
@@ -16,15 +18,24 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const (
+	AdminID int64 = 918247065
+)
+
 func main() {
 	if err := godotenv.Load("./.env"); err != nil {
 		log.Println("no .env file found")
 	}
 
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
 	cfg := config.MustLoad()
 	ctx := context.Background()
 
-	log.Printf("Loaded TG_BOT_TOKEN: %s", os.Getenv("TG_BOT_TOKEN"))
+	fmt.Println("PSQL conn")
+	fmt.Println(psqlDSN(cfg))
+	fmt.Println("---")
 
 	bot, err := tgbotapi.NewBotAPI(cfg.TG.Token)
 	if err != nil {
@@ -61,7 +72,30 @@ func main() {
 	usecase := usecase.NewUsecase(bot, repository)
 	cntr := controller.NewController(bot, usecase)
 
-	cntr.HandleUpdates(ctx)
+	go func() {
+		cntr.HandleUpdates(ctx)
+	}()
+
+	if err := NotifyOnStartUp(bot); err != nil {
+		fmt.Printf("Failed to notify admins: %v", err)
+	}
+
+	<-stop
+	fmt.Println("\nShutting down...")
+	os.Exit(0)
+}
+
+func NotifyOnStartUp(bot *tgbotapi.BotAPI) error {
+	op := "NotifyOnStartUp"
+
+	msgText := "Бот запущен"
+	msg := tgbotapi.NewMessage(AdminID, msgText)
+
+	if _, err := bot.Send(msg); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }
 
 func psqlDSN(cfg *config.Config) string {

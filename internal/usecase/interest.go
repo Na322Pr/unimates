@@ -73,6 +73,46 @@ func (uc *InterestUsecase) CreateUserInterest(ctx context.Context, userID int64,
 	return ErrInvalidInterestName
 }
 
-func (uc *InterestUsecase) DeleteUserInterest(ctx context.Context, userID int64, newInterest string) error {
-	return nil
+func (uc *InterestUsecase) DeleteUserInterest(ctx context.Context, userID int64, delInterest string) error {
+	op := "InterestUsecase.DeleteUserInterest"
+
+	interests, err := uc.repo.GetUserInterestsDTOs(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	for _, interest := range interests {
+		if interest.Name == delInterest {
+			if err := uc.repo.DeleteUserInterest(ctx, userID, interest.ID); err != nil {
+				return fmt.Errorf("%s: %w", op, err)
+			}
+			return nil
+		}
+	}
+
+	counter := 0
+	near := make([]string, 0)
+
+	for _, interest := range interests {
+		if counter > 3 {
+			break
+		}
+		if levenshtein(delInterest, interest.Name) <= 2 {
+			counter++
+			near = append(near, interest.Name)
+		}
+	}
+
+	msgText := "У вас нет похожих интересов...\nПопробуйте ввести что-то еще"
+	if len(near) != 0 {
+		msgText = "Похожие варианты:\n" + strings.Join(near, "\n")
+	}
+
+	msg := tgbotapi.NewMessage(userID, msgText)
+
+	if _, err := uc.bot.Send(msg); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return ErrInvalidInterestName
 }

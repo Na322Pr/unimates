@@ -1,20 +1,21 @@
-FROM golang:alpine AS builder
-WORKDIR /backend
+# Stage 1: Modules caching
+FROM golang:alpine AS modules
+WORKDIR /modules
 COPY go.mod go.sum ./
 RUN go mod download
+
+# Stage 2: Builder
+FROM golang:alpine AS builder
+WORKDIR /app
+COPY --from=modules /go/pkg/ /go/pkg
 COPY . .
-
-RUN go get -u github.com/pressly/goose/v3/cmd/goose
-RUN go build -o /go/bin/goose github.com/pressly/goose/v3/cmd/goose
-
 RUN go build -o unimates ./cmd/main.go
+RUN ls -l /app
 
 
-FROM alpine:latest
-WORKDIR /backend
-
-COPY --from=builder /backend/unimates .
-COPY --from=builder /go/bin/goose /usr/local/bin/goose
+# Stage 3: Final
+FROM alpine
+COPY --from=builder /app/unimates .
 
 EXPOSE 8080
 CMD ["./unimates"]

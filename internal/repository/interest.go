@@ -95,6 +95,34 @@ func (r *InterestRepository) GetUserInterests(ctx context.Context, userID int64)
 	return interests, nil
 }
 
+func (r *InterestRepository) GetUserInterestsDTOs(ctx context.Context, userID int64) ([]dto.InterestDTO, error) {
+	op := "InterestRepository.GetUserInterestsDTOs"
+	query := `SELECT id, name FROM user_interests 
+		JOIN interests ON user_interests.interest_id = interests.id
+		WHERE user_id = $1`
+
+	rows, err := r.Conn.Query(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	interestsDTOs := make([]dto.InterestDTO, 0, 100)
+	for rows.Next() {
+		var interestDTO dto.InterestDTO
+		if err := rows.Scan(&interestDTO.ID, &interestDTO.Name); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		interestsDTOs = append(interestsDTOs, interestDTO)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return interestsDTOs, nil
+}
+
 func (r *InterestRepository) CreateUserInterest(ctx context.Context, userID int64, interestID int) error {
 	op := "InterestRepository.CreateUserInterest"
 	query := "INSERT INTO user_interests(user_id, interest_id) VALUES($1, $2)"

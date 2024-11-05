@@ -124,12 +124,18 @@ func (h *InterestHandler) addInterestHandler(ctx context.Context, update tgbotap
 
 func (h *InterestHandler) deleteInterestHandler(ctx context.Context, update tgbotapi.Update) {
 	op := "InterestHandler.deleteInterestHandler"
+
 	if err := h.uc.Interest.DeleteUserInterest(
 		ctx,
 		update.Message.From.ID,
 		update.Message.Text,
 	); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		if err == usecase.ErrInvalidInterestName {
+			return
+		} else {
+			fmt.Printf("%s: %v", op, err)
+			return
+		}
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Интерес удален\nУдалить что-то еще?")
@@ -137,7 +143,6 @@ func (h *InterestHandler) deleteInterestHandler(ctx context.Context, update tgbo
 	if _, err := h.bot.Send(msg); err != nil {
 		fmt.Printf("%s: %v", op, err)
 	}
-
 }
 
 func (h *InterestHandler) AddInterest(ctx context.Context, update tgbotapi.Update) {
