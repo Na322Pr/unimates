@@ -35,10 +35,10 @@ services:
     env_file:
       - .env
     volumes:
-      - ./config:/app/config
+      - ./config:/config
     ports:
       - "8080:8080"
-    command: ["./unimates", "--config=/app/config/config.yaml"]
+    command: ["./unimates", "--config=/config/config.yaml"]
     restart: always
     depends_on:
       - postgres
