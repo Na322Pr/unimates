@@ -24,7 +24,7 @@ services:
       - .env
     volumes:
       - ./migrations:/migrations
-    command: sleep 10 && goose -dir /migrations postgres "${PG_URL}" up
+    command: sleep 10 && go/bin/goose -dir /migrations postgres "${PG_URL}" up
     depends_on:
       - postgres
 
@@ -38,7 +38,7 @@ services:
       - ./config:/config
     ports:
       - "8080:8080"
-    command: sleep 15 && ./unimates --config=/config/config.yaml
+    command: ["/bin/sh", "-c", "sleep 15 && ./unimates --config=/config/config.yaml"]
     restart: always
     depends_on:
       - postgres
