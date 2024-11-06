@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Na322Pr/unimates/internal/dto"
+	"github.com/Na322Pr/unimates/internal/keyboard/reply"
 	"github.com/Na322Pr/unimates/internal/repository"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -50,8 +51,13 @@ func (uc *OfferUsecase) SelectActiveOffer(ctx context.Context, userID, offerID i
 	return nil
 }
 
-func (uc *OfferUsecase) DeleteOffer(ctx context.Context, userID int64, orderID int64) {
+func (uc *OfferUsecase) DeleteOffer(ctx context.Context, userID int64) error {
+	op := "OfferUsecase.DeleteOffer"
+	if err := uc.repo.DeletOffer(ctx, uc.activeOffers[userID]); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 
+	return nil
 }
 
 func (uc *OfferUsecase) CreateOfferAcceptance(ctx context.Context, userID, offerID int64) error {
@@ -72,6 +78,8 @@ func (uc *OfferUsecase) GetOfferAcceptances(ctx context.Context, userID int64, o
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	uc.SelectActiveOffer(ctx, userID, offerDTO.ID)
+
 	users, err := uc.repo.GetUserAcceptedOffer(ctx, offerDTO.ID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -83,6 +91,7 @@ func (uc *OfferUsecase) GetOfferAcceptances(ctx context.Context, userID int64, o
 	}
 
 	msg := tgbotapi.NewMessage(userID, msgText)
+	msg.ReplyMarkup = reply.EditOfferKeyboard
 
 	if _, err := uc.bot.Send(msg); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
