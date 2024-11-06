@@ -18,10 +18,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const (
-	AdminID int64 = 918247065
-)
-
 func main() {
 	if err := godotenv.Load("./.env"); err != nil {
 		log.Println("no .env file found")
@@ -32,10 +28,6 @@ func main() {
 
 	cfg := config.MustLoad()
 	ctx := context.Background()
-
-	fmt.Println("PSQL conn")
-	fmt.Println(psqlDSN(cfg))
-	fmt.Println("---")
 
 	bot, err := tgbotapi.NewBotAPI(cfg.TG.Token)
 	if err != nil {
@@ -76,7 +68,7 @@ func main() {
 		cntr.HandleUpdates(ctx)
 	}()
 
-	if err := NotifyOnStartUp(bot); err != nil {
+	if err := NotifyOnStartUp(bot, *cfg); err != nil {
 		fmt.Printf("Failed to notify admins: %v", err)
 	}
 
@@ -85,14 +77,17 @@ func main() {
 	os.Exit(0)
 }
 
-func NotifyOnStartUp(bot *tgbotapi.BotAPI) error {
+func NotifyOnStartUp(bot *tgbotapi.BotAPI, cfg config.Config) error {
 	op := "NotifyOnStartUp"
 
 	msgText := "Бот запущен"
-	msg := tgbotapi.NewMessage(AdminID, msgText)
 
-	if _, err := bot.Send(msg); err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+	for _, adminID := range cfg.TG.AdminIDs {
+		msg := tgbotapi.NewMessage(adminID, msgText)
+
+		if _, err := bot.Send(msg); err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
 	}
 
 	return nil

@@ -14,7 +14,8 @@ type Config struct {
 }
 
 type TG struct {
-	Token string `yaml:"token" env:"TG_BOT_TOKEN"`
+	Token    string  `yaml:"token" env:"TOKEN"`
+	AdminIDs []int64 `yaml:"admin_ids" env:"ADMIN_USER_IDS"`
 }
 
 type PG struct {
