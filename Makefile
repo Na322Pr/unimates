@@ -12,12 +12,23 @@ POSTGRES_PORT=5432
 
 POSTGRES_DSN=postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
 
+OS := $(shell uname -s)
+ifeq ($(OS),Linux)
+    COMPOSE_FILE+= "docker-compose.linux.yaml"
+endif
+ifeq ($(OS),Darwin)
+    COMPOSE_FILE+= "docker-compose.mac.yaml"
+endif
+
+run:
+	docker-compose -f $(COMPOSE_FILE) up -d; \
+	docker image prune -f
+
+stop:
+	docker-compose -f $(COMPOSE_FILE) down
 
 build: clean
 	$(GO) build -o $(BUILD_DIR)/$(APP_NAME) cmd/main.go
-
-run: build
-	$(BUILD_DIR)/$(APP_NAME) --config="$(CONFIG_PATH)"
 
 clean: clean-build
 
@@ -32,7 +43,8 @@ clean-build:
 # 	docker-compose up -d
 
 compose-up:
-	docker-compose up --build -d 
+	docker-compose up --build -d
+	docker image prune -f
 
 compose-down:
 	docker-compose down
