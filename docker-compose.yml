@@ -1,0 +1,37 @@
+services:
+  misis-unimates-postgres:
+    image: 'postgres:15-alpine'
+    container_name: misis-unimates-postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    restart: always
+
+  misis-unimates-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    container_name: misis-unimates-migrate
+    env_file:
+      - .env
+    volumes:
+      - ./migrations:/migrations
+    command: /bin/sh -c "sleep 10 && go/bin/goose -dir /migrations postgres \"${PG_URL}\" up"
+    depends_on:
+      - misis-unimates-postgres
+
+  misis-unimates-go:
+    build:
+      context: .
+    container_name: misis-unimates-go
+    env_file:
+      - .env
+    volumes:
+      - ./config:/config
+    command: /bin/sh -c "sleep 15 && ./unimates --config=/config/config.yaml"
+    restart: always
+    depends_on:
+      - misis-unimates-postgres
