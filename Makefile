@@ -21,7 +21,7 @@ ifeq ($(OS),Darwin)
 endif
 
 run:
-	docker-compose -f $(COMPOSE_FILE) up -d; \
+	docker-compose -f $(COMPOSE_FILE) up --build -d; \
 	docker image prune -f
 
 stop:
