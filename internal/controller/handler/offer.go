@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	"fmt"
+	"log"
 
 	"github.com/Na322Pr/unimates/internal/dto"
 	"github.com/Na322Pr/unimates/internal/usecase"
@@ -23,10 +23,11 @@ func NewOfferHandler(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *OfferHandler {
 
 func (h *OfferHandler) Handle(ctx context.Context, update tgbotapi.Update) {
 	op := "OfferHandler.Handle"
+	log.Printf("new request: %s: %v", op, update)
 
 	status, err := h.uc.User.GetUserStatus(ctx, update.Message.From.ID)
 	if err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	switch status {
@@ -44,7 +45,7 @@ func (h *OfferHandler) CreateOfferHandler(ctx context.Context, update tgbotapi.U
 
 	status, err := h.uc.Offer.GetOfferStatus(ctx, update.Message.From.ID)
 	if err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 		return
 	}
 
@@ -74,7 +75,7 @@ func (h *OfferHandler) OfferSettings(ctx context.Context, update tgbotapi.Update
 	userID := update.Message.From.ID
 
 	if err := h.uc.User.SetStatus(ctx, userID, dto.UserStatusOfferEdit); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	if err := h.uc.Offer.GetOfferAcceptances(
@@ -82,7 +83,7 @@ func (h *OfferHandler) OfferSettings(ctx context.Context, update tgbotapi.Update
 		userID,
 		update.Message.Text,
 	); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 }
@@ -95,18 +96,18 @@ func (h *OfferHandler) AddOffer(ctx context.Context, update tgbotapi.Update) {
 		update.Message.From.ID,
 		dto.UserStatusOfferNew,
 	); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	if err := h.uc.Offer.CreateOffer(ctx, update.Message.From.ID); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID,
 		"Введите текст предложения")
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
 
@@ -119,14 +120,14 @@ func (h *OfferHandler) AddText(ctx context.Context, update tgbotapi.Update) {
 		update.Message.Text,
 	)
 	if err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID,
 		"Введите какой интерес объединяет людей")
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
 
@@ -139,7 +140,7 @@ func (h *OfferHandler) AddInterest(ctx context.Context, update tgbotapi.Update) 
 		update.Message.Text,
 	)
 	if err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 		return
 	}
 
@@ -148,13 +149,13 @@ func (h *OfferHandler) AddInterest(ctx context.Context, update tgbotapi.Update) 
 		update.Message.From.ID,
 		dto.UserStatusOffer,
 	); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.From.ID, "Предложение отправлено, ожидайте ответа)")
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
 
@@ -166,7 +167,7 @@ func (h *OfferHandler) CloseMenu(ctx context.Context, update tgbotapi.Update) {
 		update.Message.From.ID,
 		dto.UserStatusFree,
 	); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID,
@@ -174,7 +175,7 @@ func (h *OfferHandler) CloseMenu(ctx context.Context, update tgbotapi.Update) {
 	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
 
@@ -185,7 +186,7 @@ func (h *OfferHandler) OfferEdit(ctx context.Context, update tgbotapi.Update) {
 	switch update.Message.Text {
 	case "Удалить предложение":
 		if err := h.uc.Offer.DeleteOffer(ctx, userID); err != nil {
-			fmt.Printf("%s: %v", op, err)
+			log.Printf("%s: %v", op, err)
 		}
 
 		msgText := "Предложение удалено\n"
@@ -193,17 +194,17 @@ func (h *OfferHandler) OfferEdit(ctx context.Context, update tgbotapi.Update) {
 		msg := tgbotapi.NewMessage(userID, msgText)
 
 		if _, err := h.bot.Send(msg); err != nil {
-			fmt.Printf("%s: %v", op, err)
+			log.Printf("%s: %v", op, err)
 		}
 	}
 
 	if err := h.uc.User.SetStatus(ctx, userID, dto.UserStatusOffer); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	offers, err := h.uc.Offer.GetUserOffers(ctx, userID)
 	if err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	var keyboardRows [][]tgbotapi.KeyboardButton
@@ -227,6 +228,6 @@ func (h *OfferHandler) OfferEdit(ctx context.Context, update tgbotapi.Update) {
 	msg.ReplyMarkup = keyboard
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }

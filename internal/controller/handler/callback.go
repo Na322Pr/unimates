@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/Na322Pr/unimates/internal/usecase"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -22,7 +23,8 @@ func NewCallbackHandler(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *CallbackHand
 }
 
 func (h *CallbackHandler) Handle(ctx context.Context, update tgbotapi.Update) {
-	// op := "OfferHandler.Handle"
+	op := "CallbackHandler.Handle"
+	log.Printf("new request: %s: %v", op, update)
 
 	data := update.CallbackQuery.Data
 
@@ -43,7 +45,7 @@ func (h *CallbackHandler) SendOfferAnswerNo(ctx context.Context, update tgbotapi
 	)
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
 
@@ -54,7 +56,7 @@ func (h *CallbackHandler) SendOfferAnswerYes(ctx context.Context, update tgbotap
 
 	var data map[string]interface{}
 	if err := json.Unmarshal([]byte(update.CallbackQuery.Data), &data); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	userID := int64(data["sender_id"].(float64))
@@ -65,11 +67,11 @@ func (h *CallbackHandler) SendOfferAnswerYes(ctx context.Context, update tgbotap
 		offerRespID,
 	)
 	if err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	if err := h.uc.Offer.CreateOfferAcceptance(ctx, offerRespID, int64(data["offer_id"].(float64))); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	msg := tgbotapi.NewMessage(
@@ -78,7 +80,7 @@ func (h *CallbackHandler) SendOfferAnswerYes(ctx context.Context, update tgbotap
 	)
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	username, err = h.uc.User.GetUserUsername(
@@ -86,7 +88,7 @@ func (h *CallbackHandler) SendOfferAnswerYes(ctx context.Context, update tgbotap
 		userID,
 	)
 	if err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	msg = tgbotapi.NewMessage(
@@ -95,6 +97,6 @@ func (h *CallbackHandler) SendOfferAnswerYes(ctx context.Context, update tgbotap
 	)
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }

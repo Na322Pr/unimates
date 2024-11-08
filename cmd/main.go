@@ -33,11 +33,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create bot: %v", err)
 	}
-	bot.Debug = true
+	// bot.Debug = true
 
 	commands := []tgbotapi.BotCommand{
 		{Command: "start", Description: "Запуск бота"},
 		{Command: "rules", Description: "Правила использования"},
+		{Command: "howitworks", Description: "Как работать с ботом?"},
 		{Command: "profile", Description: "Заполнение профиля"},
 		{Command: "myprofile", Description: "Посмотреть свой профиль"},
 		{Command: "myoffers", Description: "Меню предложений"},

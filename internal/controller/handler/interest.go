@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	"fmt"
+	"log"
 
 	"github.com/Na322Pr/unimates/internal/dto"
 	"github.com/Na322Pr/unimates/internal/keyboard/reply"
@@ -23,6 +23,9 @@ func NewInterestHandler(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *InterestHand
 }
 
 func (h *InterestHandler) Handle(ctx context.Context, update tgbotapi.Update) {
+	op := "InterestHandler.Handle"
+	log.Printf("new request: %s: %v", op, update)
+
 	switch update.Message.Text {
 	case "Заполнить интересы":
 		h.StartInterest(ctx, update)
@@ -48,7 +51,7 @@ func (h *InterestHandler) StartInterest(ctx context.Context, update tgbotapi.Upd
 		dto.UserStatusInterest,
 	)
 	if err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID,
@@ -56,7 +59,7 @@ func (h *InterestHandler) StartInterest(ctx context.Context, update tgbotapi.Upd
 	msg.ReplyMarkup = reply.EditInterestKeyboard
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
 
@@ -70,7 +73,7 @@ func (h *InterestHandler) SaveInterest(ctx context.Context, update tgbotapi.Upda
 	)
 
 	if err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID,
@@ -78,7 +81,7 @@ func (h *InterestHandler) SaveInterest(ctx context.Context, update tgbotapi.Upda
 	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
 
@@ -88,7 +91,7 @@ func (h *InterestHandler) Interest(ctx context.Context, update tgbotapi.Update) 
 
 	status, err := h.uc.User.GetUserStatus(ctx, userID)
 	if err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	switch status {
@@ -110,7 +113,7 @@ func (h *InterestHandler) addInterestHandler(ctx context.Context, update tgbotap
 		if err == usecase.ErrInvalidInterestName {
 			return
 		} else {
-			fmt.Printf("%s: %v", op, err)
+			log.Printf("%s: %v", op, err)
 			return
 		}
 	}
@@ -118,7 +121,7 @@ func (h *InterestHandler) addInterestHandler(ctx context.Context, update tgbotap
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Интерес добавлен\nДобавить что-то еще?")
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
 
@@ -133,7 +136,7 @@ func (h *InterestHandler) deleteInterestHandler(ctx context.Context, update tgbo
 		if err == usecase.ErrInvalidInterestName {
 			return
 		} else {
-			fmt.Printf("%s: %v", op, err)
+			log.Printf("%s: %v", op, err)
 			return
 		}
 	}
@@ -141,7 +144,7 @@ func (h *InterestHandler) deleteInterestHandler(ctx context.Context, update tgbo
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Интерес удален\nУдалить что-то еще?")
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
 
@@ -149,7 +152,7 @@ func (h *InterestHandler) AddInterest(ctx context.Context, update tgbotapi.Updat
 	op := "InterestHandler.AddInterest"
 
 	if err := h.uc.User.SetStatus(ctx, update.Message.Chat.ID, dto.UserStatusInterestAdd); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	msgText := "Добавьте что-нибудь"
@@ -158,7 +161,7 @@ func (h *InterestHandler) AddInterest(ctx context.Context, update tgbotapi.Updat
 	msg.ReplyMarkup = reply.EndFillInterestKeyboard
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
 
@@ -166,7 +169,7 @@ func (h *InterestHandler) DeleteInterest(ctx context.Context, update tgbotapi.Up
 	op := "InterestHandler.DeleteInterest"
 
 	if err := h.uc.User.SetStatus(ctx, update.Message.Chat.ID, dto.UserStatusInterestDelete); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	msgText := "Удалите что-нибудь"
@@ -175,7 +178,7 @@ func (h *InterestHandler) DeleteInterest(ctx context.Context, update tgbotapi.Up
 	msg.ReplyMarkup = reply.EndFillInterestKeyboard
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
 
@@ -183,7 +186,7 @@ func (h *InterestHandler) EndInterest(ctx context.Context, update tgbotapi.Updat
 	op := "InterestHandler.EndInterest"
 
 	if err := h.uc.User.SetStatus(ctx, update.Message.Chat.ID, dto.UserStatusInterest); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 
 	msgText := "Изменить что-то еще?"
@@ -192,6 +195,6 @@ func (h *InterestHandler) EndInterest(ctx context.Context, update tgbotapi.Updat
 	msg.ReplyMarkup = reply.EditInterestKeyboard
 
 	if _, err := h.bot.Send(msg); err != nil {
-		fmt.Printf("%s: %v", op, err)
+		log.Printf("%s: %v", op, err)
 	}
 }
