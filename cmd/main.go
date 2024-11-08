@@ -59,7 +59,7 @@ func main() {
 	repository := repository.NewRepository(pg)
 
 	if err := preloadInterests(ctx, repository.Interest); err != nil {
-		fmt.Printf("Failed to load interests: %v", err)
+		log.Printf("Failed to load interests: %v", err)
 	}
 
 	usecase := usecase.NewUsecase(bot, repository)
@@ -70,11 +70,11 @@ func main() {
 	}()
 
 	if err := NotifyOnStartUp(bot, *cfg); err != nil {
-		fmt.Printf("Failed to notify admins: %v", err)
+		log.Printf("Failed to notify admins: %v", err)
 	}
 
 	<-stop
-	fmt.Println("\nShutting down...")
+	log.Println("\nShutting down...")
 	os.Exit(0)
 }
 
