@@ -40,9 +40,12 @@ func (c *Controller) HandleUpdates(ctx context.Context) {
 
 	updates := c.bot.GetUpdatesChan(u)
 	for update := range updates {
-
 		if update.CallbackQuery != nil {
 			c.callbackHandler.Handle(ctx, update)
+			continue
+		}
+
+		if update.Message == nil {
 			continue
 		}
 
