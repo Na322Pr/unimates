@@ -66,6 +66,7 @@ func (h *CommandHandler) Start(ctx context.Context, update tgbotapi.Update) {
 💡 Уникальность UM - это широкий выбор увлечений. Не нашёл свое?`
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, msgText)
+	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
 	if _, err := h.bot.Send(msg); err != nil {
 		log.Printf("%s: %v", op, err)

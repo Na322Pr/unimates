@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/Na322Pr/unimates/internal/repository"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -31,6 +32,14 @@ func (uc *InterestUsecase) GetUserInterests(ctx context.Context, userID int64) (
 
 func (uc *InterestUsecase) CreateUserInterest(ctx context.Context, userID int64, newInterest string) error {
 	op := "InterestUsecase.CreateUserInterest"
+
+	if len(newInterest) == 0 {
+		return fmt.Errorf("%s: %w", op, ErrEmptyInterest)
+	}
+
+	runes := []rune(newInterest)
+	runes[0] = unicode.ToUpper(runes[0])
+	newInterest = string(runes)
 
 	interests, err := uc.repo.GetInterests(ctx)
 	if err != nil {
@@ -75,6 +84,14 @@ func (uc *InterestUsecase) CreateUserInterest(ctx context.Context, userID int64,
 
 func (uc *InterestUsecase) DeleteUserInterest(ctx context.Context, userID int64, delInterest string) error {
 	op := "InterestUsecase.DeleteUserInterest"
+
+	if len(delInterest) == 0 {
+		return fmt.Errorf("%s: %w", op, ErrEmptyInterest)
+	}
+
+	runes := []rune(delInterest)
+	runes[0] = unicode.ToUpper(runes[0])
+	delInterest = string(runes)
 
 	interests, err := uc.repo.GetUserInterestsDTOs(ctx, userID)
 	if err != nil {
