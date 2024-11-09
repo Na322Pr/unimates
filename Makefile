@@ -24,6 +24,10 @@ run:
 	docker-compose -f $(COMPOSE_FILE) up --build -d; \
 	docker image prune -f
 
+rerun-botservice:
+	docker-compose -f $(COMPOSE_FILE) up --build -d go-unimates; \
+	docker image prune -f
+
 stop:
 	docker-compose -f $(COMPOSE_FILE) down
 
