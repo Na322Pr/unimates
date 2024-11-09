@@ -23,8 +23,7 @@ func NewCallbackHandler(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *CallbackHand
 }
 
 func (h *CallbackHandler) Handle(ctx context.Context, update tgbotapi.Update) {
-	op := "CallbackHandler.Handle"
-	log.Printf("new request: %s: %v", op, update)
+	// op := "CallbackHandler.Handle"
 
 	data := update.CallbackQuery.Data
 

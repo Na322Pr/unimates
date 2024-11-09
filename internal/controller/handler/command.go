@@ -26,8 +26,7 @@ func NewCommandHandler(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *CommandHandle
 }
 
 func (h *CommandHandler) Handle(ctx context.Context, update tgbotapi.Update) {
-	op := "CommandHandler.Handle"
-	log.Printf("new request: %s: %v", op, update)
+	// op := "CommandHandler.Handle"
 
 	switch update.Message.Command() {
 	case "start":

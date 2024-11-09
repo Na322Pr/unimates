@@ -23,7 +23,6 @@ func NewOfferHandler(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *OfferHandler {
 
 func (h *OfferHandler) Handle(ctx context.Context, update tgbotapi.Update) {
 	op := "OfferHandler.Handle"
-	log.Printf("new request: %s: %v", op, update)
 
 	status, err := h.uc.User.GetUserStatus(ctx, update.Message.From.ID)
 	if err != nil {

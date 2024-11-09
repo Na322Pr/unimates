@@ -23,8 +23,7 @@ func NewInterestHandler(bot *tgbotapi.BotAPI, uc *usecase.Usecase) *InterestHand
 }
 
 func (h *InterestHandler) Handle(ctx context.Context, update tgbotapi.Update) {
-	op := "InterestHandler.Handle"
-	log.Printf("new request: %s: %v", op, update)
+	// op := "InterestHandler.Handle"
 
 	switch update.Message.Text {
 	case "Заполнить интересы":
