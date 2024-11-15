@@ -60,7 +60,10 @@ func (c *Controller) HandleUpdates(ctx context.Context) {
 		}
 
 		switch status {
-		case dto.UserStatusInterest, dto.UserStatusInterestAdd, dto.UserStatusInterestDelete:
+		case dto.UserStatusInterest,
+			dto.UserStatusInterestAdd,
+			dto.UserStatusInterestAddCustom,
+			dto.UserStatusInterestDelete:
 			c.interestHandler.Handle(ctx, update)
 		case dto.UserStatusOffer, dto.UserStatusOfferNew, dto.UserStatusOfferEdit:
 			c.offerHandler.Handle(ctx, update)

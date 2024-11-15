@@ -19,19 +19,37 @@ func NewInterestRepository(pg *postgres.Postgres) *InterestRepository {
 
 func (r *InterestRepository) PreloadInterests(ctx context.Context, interests []string) error {
 	op := "InterestRepository.PreloadInterests"
-	query := `INSERT INTO interests(id, name) values `
+	query := `INSERT INTO interests(name) values`
 
 	var values []string
 	var args []any
 
 	for id, name := range interests {
-		values = append(values, fmt.Sprintf("($%d, $%d)", id*2+1, id*2+2))
-		args = append(args, id, name)
+		values = append(values, fmt.Sprintf("($%d)", id+1))
+		args = append(args, name)
 	}
 
 	query += strings.Join(values, ", ")
 
 	_, err := r.Conn.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	query = "UPDATE interests SET name = LOWER(name)"
+	_, err = r.Conn.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+func (r *InterestRepository) CreateCustomInterest(ctx context.Context, interest string) error {
+	op := "InterestRepository.CreateCustomInterest"
+	query := "INSERT INTO interests(name) VALUES($1);"
+
+	_, err := r.Conn.Exec(ctx, query, interest)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

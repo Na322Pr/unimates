@@ -37,23 +37,6 @@ func (uc *UserUsecase) CreateUser(ctx context.Context, userID int64, username st
 	return nil
 }
 
-// func (uc *UserUsecase) RecreateUser(ctx context.Context, userID int64) error {
-// 	op := "UserUsecase.RecreateUser"
-
-// 	userDTO, err := uc.repo.GetUser(ctx, userID)
-// 	if err != nil {
-// 		return fmt.Errorf("%s: %w", op, err)
-// 	}
-
-// 	userDTO.Status = dto.UserStatusInterest
-
-// 	if err := uc.repo.UpdateUser(ctx, *userDTO); err != nil {
-// 		return fmt.Errorf("%s: %w", op, err)
-// 	}
-
-// 	return nil
-// }
-
 func (uc *UserUsecase) GetUserUsername(ctx context.Context, userID int64) (string, error) {
 	op := "UserUsecase.GetUserUsername"
 
@@ -75,42 +58,6 @@ func (uc *UserUsecase) GetUserStatus(ctx context.Context, userID int64) (dto.Use
 
 	return status, nil
 }
-
-// func (uc *UserUsecase) GetUserInterests(ctx context.Context, userID int64) ([]string, error) {
-// 	op := "UserUsecase.GetUserInterests"
-
-// 	userDTO, err := uc.repo.GetUser(ctx, userID)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("%s: %w", op, err)
-// 	}
-
-// 	return userDTO.Interests, nil
-// }
-
-// func (uc *UserUsecase) AddInterest(ctx context.Context, userID int64, interest string) error {
-// 	op := "UserUsecase.AddInterest"
-
-// 	userDTO, err := uc.repo.GetUser(ctx, userID)
-// 	if err != nil {
-// 		return fmt.Errorf("%s: %w", op, err)
-// 	}
-
-// 	interest = strings.ToLower(interest)
-
-// 	for _, val := range userDTO.Interests {
-// 		if val == interest {
-// 			return fmt.Errorf("%s: %w", op, ErrInterestAlreadyExist)
-// 		}
-// 	}
-
-// 	userDTO.Interests = append(userDTO.Interests, interest)
-
-// 	if err := uc.repo.UpdateUser(ctx, *userDTO); err != nil {
-// 		return fmt.Errorf("%s: %w", op, err)
-// 	}
-
-// 	return nil
-// }
 
 func (uc *UserUsecase) SetStatus(ctx context.Context, userID int64, status dto.UserStatus) error {
 	op := "UserUsecase.SetStatus"

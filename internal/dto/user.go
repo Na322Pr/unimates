@@ -7,14 +7,15 @@ import (
 type UserStatus string
 
 const (
-	UserStatusUnkown         UserStatus = "unknown"
-	UserStatusFree           UserStatus = "empty"
-	UserStatusInterest       UserStatus = "interest"
-	UserStatusInterestAdd    UserStatus = "interest_add"
-	UserStatusInterestDelete UserStatus = "interest_delete"
-	UserStatusOffer          UserStatus = "offer"
-	UserStatusOfferNew       UserStatus = "offer_new"
-	UserStatusOfferEdit      UserStatus = "offer_edit"
+	UserStatusUnkown            UserStatus = "unknown"
+	UserStatusFree              UserStatus = "empty"
+	UserStatusInterest          UserStatus = "interest"
+	UserStatusInterestAdd       UserStatus = "interest_add"
+	UserStatusInterestAddCustom UserStatus = "interest_add_custom"
+	UserStatusInterestDelete    UserStatus = "interest_delete"
+	UserStatusOffer             UserStatus = "offer"
+	UserStatusOfferNew          UserStatus = "offer_new"
+	UserStatusOfferEdit         UserStatus = "offer_edit"
 )
 
 type UserRole string
@@ -32,5 +33,3 @@ type UserDTO struct {
 	CreatedAt  time.Time  `db:"created_at"`
 	ModifiedAt time.Time  `db:"modified_at"`
 }
-
-//	Interests []string   `db:"interests"`

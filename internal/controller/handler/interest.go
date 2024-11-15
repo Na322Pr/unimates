@@ -28,8 +28,10 @@ func (h *InterestHandler) Handle(ctx context.Context, update tgbotapi.Update) {
 	switch update.Message.Text {
 	case "Заполнить интересы":
 		h.StartInterest(ctx, update)
-	case "Добавить":
+	case "Добавить существующий интерес":
 		h.AddInterest(ctx, update)
+	case "Создать новый интерес":
+		h.AddCustomInterest(ctx, update)
 	case "Удалить":
 		h.DeleteInterest(ctx, update)
 	case "Закончить":
@@ -93,9 +95,13 @@ func (h *InterestHandler) Interest(ctx context.Context, update tgbotapi.Update) 
 		log.Printf("%s: %v", op, err)
 	}
 
+	log.Printf("Status: %s\n", status)
+
 	switch status {
 	case dto.UserStatusInterestAdd:
 		h.addInterestHandler(ctx, update)
+	case dto.UserStatusInterestAddCustom:
+		h.addCustomInterestHandler(ctx, update)
 	case dto.UserStatusInterestDelete:
 		h.deleteInterestHandler(ctx, update)
 	}
@@ -118,6 +124,32 @@ func (h *InterestHandler) addInterestHandler(ctx context.Context, update tgbotap
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Интерес добавлен\nДобавить что-то еще?")
+
+	if _, err := h.bot.Send(msg); err != nil {
+		log.Printf("%s: %v", op, err)
+	}
+}
+
+func (h *InterestHandler) addCustomInterestHandler(ctx context.Context, update tgbotapi.Update) {
+	op := "InterestHandler.addCustomInterestHandler"
+
+	msgText := "Готово"
+
+	if update.Message.Text != "Отменить" {
+		msgText = "Ваш интерес добавлен. Теперь другие пользователи смогут его использовать"
+		if err := h.uc.Interest.CreateCustomInterest(ctx, update.Message.Text); err != nil {
+			log.Printf("%s: %v", op, err)
+			return
+		}
+	}
+
+	if err := h.uc.User.SetStatus(ctx, update.Message.From.ID, dto.UserStatusInterest); err != nil {
+		log.Printf("%s: %v", op, err)
+		return
+	}
+
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, msgText)
+	msg.ReplyMarkup = reply.EditInterestKeyboard
 
 	if _, err := h.bot.Send(msg); err != nil {
 		log.Printf("%s: %v", op, err)
@@ -158,6 +190,23 @@ func (h *InterestHandler) AddInterest(ctx context.Context, update tgbotapi.Updat
 
 	msg := tgbotapi.NewMessage(update.Message.From.ID, msgText)
 	msg.ReplyMarkup = reply.EndFillInterestKeyboard
+
+	if _, err := h.bot.Send(msg); err != nil {
+		log.Printf("%s: %v", op, err)
+	}
+}
+
+func (h *InterestHandler) AddCustomInterest(ctx context.Context, update tgbotapi.Update) {
+	op := "InterestHandler.AddCustomInterest"
+
+	if err := h.uc.User.SetStatus(ctx, update.Message.From.ID, dto.UserStatusInterestAddCustom); err != nil {
+		log.Printf("%s: %v", op, err)
+	}
+
+	msgText := "Какой интерес хотите добавить?"
+
+	msg := tgbotapi.NewMessage(update.Message.From.ID, msgText)
+	msg.ReplyMarkup = reply.CancelAddCustomInterestKeyboard
 
 	if _, err := h.bot.Send(msg); err != nil {
 		log.Printf("%s: %v", op, err)

@@ -27,7 +27,25 @@ func (uc *InterestUsecase) GetUserInterests(ctx context.Context, userID int64) (
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	for i := 0; i < len(interests); i++ {
+		runes := []rune(interests[i])
+		runes[0] = unicode.ToUpper(runes[0])
+		interests[i] = string(runes)
+	}
+
 	return interests, nil
+}
+
+func (uc *InterestUsecase) CreateCustomInterest(ctx context.Context, interest string) error {
+	op := "InterestUsecase.CreateCustomInterest"
+
+	interest = strings.ToLower(interest)
+
+	if err := uc.repo.CreateCustomInterest(ctx, interest); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }
 
 func (uc *InterestUsecase) CreateUserInterest(ctx context.Context, userID int64, newInterest string) error {
@@ -37,9 +55,7 @@ func (uc *InterestUsecase) CreateUserInterest(ctx context.Context, userID int64,
 		return fmt.Errorf("%s: %w", op, ErrEmptyInterest)
 	}
 
-	runes := []rune(newInterest)
-	runes[0] = unicode.ToUpper(runes[0])
-	newInterest = string(runes)
+	newInterest = strings.ToLower(newInterest)
 
 	interests, err := uc.repo.GetInterests(ctx)
 	if err != nil {
@@ -68,6 +84,12 @@ func (uc *InterestUsecase) CreateUserInterest(ctx context.Context, userID int64,
 		}
 	}
 
+	for i := 0; i < len(near); i++ {
+		runes := []rune(near[i])
+		runes[0] = unicode.ToUpper(runes[0])
+		near[i] = string(runes)
+	}
+
 	msgText := "У нас нет похожих интересов...\nПопробуйте ввести что-то еще"
 	if len(near) != 0 {
 		msgText = "Похожие варианты:\n" + strings.Join(near, "\n")
@@ -89,9 +111,7 @@ func (uc *InterestUsecase) DeleteUserInterest(ctx context.Context, userID int64,
 		return fmt.Errorf("%s: %w", op, ErrEmptyInterest)
 	}
 
-	runes := []rune(delInterest)
-	runes[0] = unicode.ToUpper(runes[0])
-	delInterest = string(runes)
+	delInterest = strings.ToLower(delInterest)
 
 	interests, err := uc.repo.GetUserInterestsDTOs(ctx, userID)
 	if err != nil {
@@ -118,6 +138,12 @@ func (uc *InterestUsecase) DeleteUserInterest(ctx context.Context, userID int64,
 			counter++
 			near = append(near, interest.Name)
 		}
+	}
+
+	for i := 0; i < len(near); i++ {
+		runes := []rune(near[i])
+		runes[0] = unicode.ToUpper(runes[0])
+		near[i] = string(runes)
 	}
 
 	msgText := "У вас нет похожих интересов...\nПопробуйте ввести что-то еще"
