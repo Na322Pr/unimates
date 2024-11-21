@@ -2,12 +2,14 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"unicode"
 
 	"github.com/Na322Pr/unimates/internal/repository"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type InterestUsecase struct {
@@ -53,6 +55,9 @@ func (uc *InterestUsecase) CreateUserInterest(ctx context.Context, userID int64,
 	for _, interest := range interests {
 		if interest.Name == newInterest {
 			if err := uc.repo.CreateUserInterest(ctx, userID, interest.ID); err != nil {
+				if isDuplicateKeyError(err) {
+					return nil
+				}
 				return fmt.Errorf("%s: %w", op, err)
 			}
 			return nil
@@ -65,6 +70,9 @@ func (uc *InterestUsecase) CreateUserInterest(ctx context.Context, userID int64,
 	}
 
 	if err := uc.repo.CreateUserInterest(ctx, userID, interestID); err != nil {
+		if isDuplicateKeyError(err) {
+			return nil
+		}
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -125,4 +133,12 @@ func (uc *InterestUsecase) DeleteUserInterest(ctx context.Context, userID int64,
 	}
 
 	return ErrInvalidInterestName
+}
+
+func isDuplicateKeyError(err error) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == "23505" // Unique violation code
+	}
+	return false
 }
