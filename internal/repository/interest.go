@@ -45,16 +45,17 @@ func (r *InterestRepository) PreloadInterests(ctx context.Context, interests []s
 	return nil
 }
 
-func (r *InterestRepository) CreateCustomInterest(ctx context.Context, interest string) error {
+func (r *InterestRepository) CreateCustomInterest(ctx context.Context, interest string) (int, error) {
 	op := "InterestRepository.CreateCustomInterest"
-	query := "INSERT INTO interests(name) VALUES($1);"
+	query := "INSERT INTO interests(name) VALUES($1) RETURNING id;"
 
-	_, err := r.Conn.Exec(ctx, query, interest)
+	var interestID int
+	err := r.Conn.QueryRow(ctx, query, interest).Scan(&interestID)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return nil
+	return interestID, nil
 }
 
 func (r *InterestRepository) GetInterests(ctx context.Context) ([]dto.InterestDTO, error) {

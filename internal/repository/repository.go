@@ -25,7 +25,7 @@ type Interest interface {
 	GetUserInterests(ctx context.Context, userID int64) ([]string, error)
 	GetUserInterestsDTOs(ctx context.Context, userID int64) ([]dto.InterestDTO, error)
 	CreateUserInterest(ctx context.Context, userID int64, interestID int) error
-	CreateCustomInterest(ctx context.Context, interest string) error
+	CreateCustomInterest(ctx context.Context, interest string) (int, error)
 	DeleteUserInterest(ctx context.Context, userID int64, interestID int) error
 }
 

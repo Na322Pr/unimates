@@ -36,18 +36,6 @@ func (uc *InterestUsecase) GetUserInterests(ctx context.Context, userID int64) (
 	return interests, nil
 }
 
-func (uc *InterestUsecase) CreateCustomInterest(ctx context.Context, interest string) error {
-	op := "InterestUsecase.CreateCustomInterest"
-
-	interest = strings.ToLower(interest)
-
-	if err := uc.repo.CreateCustomInterest(ctx, interest); err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	return nil
-}
-
 func (uc *InterestUsecase) CreateUserInterest(ctx context.Context, userID int64, newInterest string) error {
 	op := "InterestUsecase.CreateUserInterest"
 
@@ -71,37 +59,16 @@ func (uc *InterestUsecase) CreateUserInterest(ctx context.Context, userID int64,
 		}
 	}
 
-	counter := 0
-	near := make([]string, 0)
-
-	for _, interest := range interests {
-		if counter > 3 {
-			break
-		}
-		if levenshtein(newInterest, interest.Name) <= 2 {
-			counter++
-			near = append(near, interest.Name)
-		}
-	}
-
-	for i := 0; i < len(near); i++ {
-		runes := []rune(near[i])
-		runes[0] = unicode.ToUpper(runes[0])
-		near[i] = string(runes)
-	}
-
-	msgText := "У нас нет похожих интересов...\nПопробуйте ввести что-то еще"
-	if len(near) != 0 {
-		msgText = "Похожие варианты:\n" + strings.Join(near, "\n")
-	}
-
-	msg := tgbotapi.NewMessage(userID, msgText)
-
-	if _, err := uc.bot.Send(msg); err != nil {
+	interestID, err := uc.repo.CreateCustomInterest(ctx, newInterest)
+	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	return ErrInvalidInterestName
+	if err := uc.repo.CreateUserInterest(ctx, userID, interestID); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }
 
 func (uc *InterestUsecase) DeleteUserInterest(ctx context.Context, userID int64, delInterest string) error {

@@ -110,6 +110,7 @@ func (h *CommandHandler) Rules(ctx context.Context, update tgbotapi.Update) {
 • Мы рекомендуем проводить первую встречу в стенах университета ради безопасности.`
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, msgText)
+	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
 	if _, err := h.bot.Send(msg); err != nil {
 		log.Printf("%s: %v", op, err)
@@ -129,6 +130,7 @@ func (h *CommandHandler) HowItWorks(ctx context.Context, update tgbotapi.Update)
 Также у нас есть телеграмм канал для обратной связи и ваших вопросов: @unimateschannel`
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, msgText)
+	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
 	if _, err := h.bot.Send(msg); err != nil {
 		log.Printf("%s: %v", op, err)
@@ -217,6 +219,7 @@ func (h *CommandHandler) MyInterests(ctx context.Context, update tgbotapi.Update
 		msgText = fmt.Sprintf("Список ваших интересов:\n%s", strings.Join(interests, "\n"))
 	}
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, msgText)
+	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
 	if _, err := h.bot.Send(msg); err != nil {
 		log.Printf("%s: %v", op, err)
