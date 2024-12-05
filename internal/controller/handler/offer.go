@@ -104,6 +104,7 @@ func (h *OfferHandler) AddOffer(ctx context.Context, update tgbotapi.Update) {
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID,
 		"Введите текст предложения")
+	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
 	if _, err := h.bot.Send(msg); err != nil {
 		log.Printf("%s: %v", op, err)
@@ -152,6 +153,28 @@ func (h *OfferHandler) AddInterest(ctx context.Context, update tgbotapi.Update) 
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.From.ID, "Предложение отправлено, ожидайте ответа)")
+
+	offers, err := h.uc.Offer.GetUserOffers(ctx, update.Message.From.ID)
+	if err != nil {
+		log.Printf("%s: %v", op, err)
+	}
+
+	var keyboardRows [][]tgbotapi.KeyboardButton
+
+	row := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Новое предложение"))
+	keyboardRows = append(keyboardRows, row)
+
+	for _, offer := range offers {
+		row = tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(offer.Text.String))
+		keyboardRows = append(keyboardRows, row)
+	}
+
+	row = tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Сохранить"))
+	keyboardRows = append(keyboardRows, row)
+
+	keyboard := tgbotapi.NewReplyKeyboard(keyboardRows...)
+
+	msg.ReplyMarkup = keyboard
 
 	if _, err := h.bot.Send(msg); err != nil {
 		log.Printf("%s: %v", op, err)

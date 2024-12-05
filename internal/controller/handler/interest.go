@@ -30,8 +30,6 @@ func (h *InterestHandler) Handle(ctx context.Context, update tgbotapi.Update) {
 		h.StartInterest(ctx, update)
 	case "Добавить интерес":
 		h.AddInterest(ctx, update)
-	// case "Создать новый интерес":
-	// 	h.AddCustomInterest(ctx, update)
 	case "Удалить":
 		h.DeleteInterest(ctx, update)
 	case "Закончить":

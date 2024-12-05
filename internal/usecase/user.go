@@ -49,7 +49,7 @@ func (uc *UserUsecase) GetUserUsername(ctx context.Context, userID int64) (strin
 }
 
 func (uc *UserUsecase) GetUserStatus(ctx context.Context, userID int64) (dto.UserStatus, error) {
-	op := "UserUsecase.CreatGetUserStatuseUser"
+	op := "UserUsecase.GetUserStatus"
 
 	status, err := uc.repo.GetUserStatus(ctx, userID)
 	if err != nil {

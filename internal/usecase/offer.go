@@ -122,22 +122,24 @@ func (uc *OfferUsecase) GetOfferStatus(ctx context.Context, userID int64) (dto.O
 }
 
 func (uc *OfferUsecase) AddOfferText(ctx context.Context, userID int64, text string) error {
-	op := "OfferUsecase.GetOfferStatus"
+	op := "OfferUsecase.AddOfferText"
 
 	if err := uc.repo.UpdateOfferText(ctx, uc.activeOffers[userID], text); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	return ErrInvalidInterestName
+	return nil
 }
 
 func (uc *OfferUsecase) AddOfferInterest(ctx context.Context, userID int64, newInterest string) error {
-	op := "OfferUsecase.GetOfferStatus"
+	op := "OfferUsecase.AddOfferInterest"
 
 	interests, err := uc.repo.GetInterests(ctx)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
+
+	newInterest = strings.ToLower(newInterest)
 
 	newInterestID := -1
 
@@ -163,12 +165,15 @@ func (uc *OfferUsecase) AddOfferInterest(ctx context.Context, userID int64, newI
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	fmt.Println(userID, newInterestID)
+	fmt.Println(userID, newInterestID)
+
 	matchUserIDs, err := uc.repo.GetMatch(ctx, userID, newInterestID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	fmt.Println(matchUserIDs)
+	fmt.Printf("%s: %d", op, matchUserIDs)
 
 	offerDTO, err := uc.repo.Offer.GetOfferByID(ctx, uc.activeOffers[userID])
 	if err != nil {
